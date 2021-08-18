@@ -2,7 +2,7 @@
 % Please edit documentation in R/FLselex.R
 \name{fitselex}
 \alias{fitselex}
-\title{fits selex selectivity function to F_at_age from FLStock}
+\title{fitselex}
 \usage{
 fitselex(
   Sa,
@@ -17,15 +17,17 @@ fitselex(
 \arguments{
 \item{Sa}{selectivity at age Sa = selage(stock)}
 
-\item{S50}{init value age-at-50%-selectivty}
+\item{S50}{init value age-at-50-selectivty}
 
-\item{S95}{init value age-at-95%-selectivty}
+\item{S95}{init value age-at-95-selectivty}
 
 \item{Smax}{init value age at peak of halfnormal or top of descending slop}
 
 \item{Dcv}{init value CV of halfnormal determining the steepness of the descending slope}
 
 \item{Dmin}{init value height of the descending slop at maximum age}
+
+\item{CVlim}{sets upper CV bound}
 }
 \value{
 list with fit and FLquants selex predictions

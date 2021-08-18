@@ -9,9 +9,9 @@ selexpars(Sa, S50 = NULL, S95 = NULL, Smax = NULL, Dcv = NULL, Dmin = NULL)
 \arguments{
 \item{Sa}{selectivity at age Sa = selage(stock)}
 
-\item{S50}{age-at-50%-selectivty}
+\item{S50}{age-at-50-selectivty}
 
-\item{S95}{age-at-95%-selectivty}
+\item{S95}{age-at-95-selectivty}
 
 \item{Smax}{age at peak of halfnormal or top of descending slop}
 

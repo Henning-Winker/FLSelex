@@ -2,7 +2,7 @@
 % Please edit documentation in R/FLselex.R
 \name{s50}
 \alias{s50}
-\title{approximates Age-at-50%-selectivity from Sa}
+\title{approximates Age-at-50-selectivity from Sa}
 \usage{
 s50(Sa)
 }
@@ -13,5 +13,5 @@ s50(Sa)
 s50
 }
 \description{
-approximates Age-at-50%-selectivity from Sa
+approximates Age-at-50-selectivity from Sa
 }

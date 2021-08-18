@@ -40,7 +40,7 @@ fabs <- function (stock, nyears=3,year=NULL){
 #{{{
 # s50
 #
-#' approximates Age-at-50%-selectivity from Sa 
+#' approximates Age-at-50-selectivity from Sa 
 #'
 #' @param Sa selectivity at age Sa = selage(stock)
 #' @return s50 
@@ -65,8 +65,8 @@ s50 = function(Sa){
 #' computes initial values for selex pars 
 #'
 #' @param Sa selectivity at age Sa = selage(stock)
-#' @param S50 age-at-50%-selectivty
-#' @param S95 age-at-95%-selectivty
+#' @param S50 age-at-50-selectivty
+#' @param S95 age-at-95-selectivty
 #' @param Smax age at peak of halfnormal or top of descending slop
 #' @param Dcv CV of halfnormal determining the steepness of the descending slope
 #' @param Dmin height of the descending slop at maximum age
@@ -153,16 +153,17 @@ selex <- function(Sa,pars){
 
 
 #{{{
-# fitselex
-#
+#' fitselex
+#'
 #' fits selex selectivity function to F_at_age from FLStock 
 #'
 #' @param Sa selectivity at age Sa = selage(stock)
-#' @param S50 init value age-at-50%-selectivty
-#' @param S95 init value age-at-95%-selectivty
+#' @param S50 init value age-at-50-selectivty
+#' @param S95 init value age-at-95-selectivty
 #' @param Smax init value age at peak of halfnormal or top of descending slop
 #' @param Dcv init value CV of halfnormal determining the steepness of the descending slope
 #' @param Dmin init value height of the descending slop at maximum age
+#' @param CVlim sets upper CV bound
 #' @return list with fit and FLquants selex predictions
 #' @export 
 fitselex <- function(Sa,S50=NULL,S95=NULL,Smax=NULL,Dcv=NULL,Dmin=NULL,CVlim=0.5){
