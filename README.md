@@ -1,2 +1,2 @@
 # FLSelex
-Analyzing impacts of alternative selectivity pattern in FLR 
+Analyzing impacts of alternative selectivity patterns in FLR 
