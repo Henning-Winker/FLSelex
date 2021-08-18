@@ -1,2 +1,2 @@
 # FLSelex_beta
-Analyzing impacts of alternative selectivity pattern in FLR 
+Analyzing impacts of alternative selectivity pattern in FLR (beta version)
