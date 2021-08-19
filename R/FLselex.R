@@ -310,6 +310,31 @@ discards(stock) = computeDiscards(stock)
 return(stock)
 }
 
+
+#' as.ogive()
+#' 
+#' Function to set fbar range to F = max(Fa)  
+#' @param object selex FLpar or output from fitselex 
+#' @param nyears number of end years for reference
+#' @return FLStock
+#' @export 
+as.ogive <- function(object){
+  if(class(object)=="list"){
+    object$par[3] = 100
+    object$par[4] = 0.05
+    object$par[5] = 0.05} 
+  
+    if(class(object)=="FLPar"){
+      object[3] = 100
+      object[4] = 0.05
+      object[5] = 0.05 
+    }
+    
+  return(object)
+} #}}}
+
+
+
 #' fbar2f()
 #' 
 #' Function to set fbar range to F = max(Fa)  
@@ -317,10 +342,12 @@ return(stock)
 #' @param nyears number of end years for reference
 #' @return FLStock
 #' @export 
-fbar2f <- function(stock,nyears=3){
+fbar2f <- function(stock,nyears=3,plim=1){
 sel = yearMeans(tail(catch.sel(stock),nyears)) 
 age = dims(stock)[["min"]]:dims(stock)[["max"]]
-range(stock)[6:7] = rep(age[which(sel==max(sel))[1]],2)
+if(plim==1)range(stock)[6:7] = rep(age[which(sel==max(sel))[1]],2)
+if(plim<1) range(stock)[6:7] = c(min(age[which(sel>=plim)]),max(age[which(sel>=plim)]))  
+ 
 return(stock)
 }
 
@@ -344,7 +371,7 @@ par2sa <- function(pars,object,nyears=3){
 #{{{
 # brp.selex() 
 #
-#' function to do nyears backtest of selex pattern in FLStocks 
+#' Compute equilibrium quantaties across selectivity curves  
 #' @param sel selex FLPars() or Sa FLQuants   
 #' @param stock stock object of class FLStock 
 #' @param sr spawner-recruitment function FLSR
@@ -378,65 +405,126 @@ brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3){
 } #}}}
 
 
-
-
-
-
-
-
 #{{{
 # selex.backtest() 
 #
 #' function to do nyears backtest of selex pattern in FLStocks 
 #' @param stock stock object of class FLStock 
-#' @param pars list of selex parameters of class of FLPars()  
-#' @param sr spawner-recruitment function FLSR
+#' @param sel list of selex parameters of class of FLPars()  
+#' @param sr optional spawner-recruitment function FLSR
 #' @param byears number of backtest years   
 #' @param nyears number of years for reference conditions   
-#' @param quantity observed "f" or "catch" for fwdControl() 
+#' @param plim set fbar for ages with Selectivy >= plim (default 1)
 #' @return FLStocks object
 #' @export
-selex.backtest = function(sel,stock,byears=10,sr=NULL,nyears=5,quantity=c("f","catch")){
+selex.backtest = function(sel,stock,sr=NULL,byears=10,nyears=3,plim=1){
 # merge discards to avoid issues in projections
-
+object = sel
+if(class(object)=="FLPars") object = par2sa(object,stock)
 # set Fbar range 
-stock=fbar2f(stock)
-# use geomean sr if sr = NULL (only growth overfishing)
-if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method = c("BFGS"))
+#stock=fbar2f(stock)
+stock=fbar2f(stock,nyears=nyears,plim=plim)
 
+# use geomean sr if sr = NULL (only growth overfishing)
+if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method="BFGS")
 
 # reference selex
 Fsq = fabs(stock,nyears=nyears)
 fobs = tail(harvest(stock),byears)
 Fobs = apply(fobs,2,max)
-Cobs = tail(catch(stock),byears)
-sel = yearMeans(tail(catch.sel(stock),nyears)) 
-sel = sel/max(sel)
 yrs = dims(fobs)$minyear:dims(fobs)$maxyear
 dy = dims(fobs)$minyear-1
-
+Sobs = selage(stock,nyears=nyears)
 # prepare stock structure for backtest
-sfwd = window(stock,end=dy)
-sfwd = stf(refstk,byears)
-harvest(refstk)[,ac(yrs)] = fref 
+stkf = window(stock,end=dy)
+stkf = stf(stkf,byears)
+ctrl_f <- fwdControl(data.frame(year = yrs,
+                          quant = "f",
+                          value = an(Fobs)))
+# Recruitment residuals
+rec_res = exp(sr@residuals)
+# Current selectivity
 
+out = FLStocks(lapply(object,function(x){
+  stk = stock
+  harvest(stk)[,ac(yrs)][] = x
+  stk = fbar2f(stk,plim=plim)
+  stk = fwd(stk, control = ctrl_f, sr = sr,residuals=rec_res)
+  stk = window(stk,start=dy)
+})) 
 
+out = Map(function(x,y){
+  x@name = paste(y)
+  x
+},out,as.list(object@names))
+stock@name = "obs"
+out = FLStocks(c(FLStocks(obs=stock),out))
 
-
-selobs = tail(catch.sel(stock),byears)
-selref = selobs
-selref[] = sel
-fref = Fobs%*%selref
-Cobs = tail(harvest(stock),byears)
-# prepare stock structure for backtest
-refstk = window(stock,end=dy)
-refstk = stf(refstk,byears)
-harvest(refstk)[,ac(yrs)] = Fref 
-
-
+return(out)
 }
 
+#{{{
+# selex.fwd() 
+#
+#' function to forcast nyears under different selex patterns 
+#' @param stock stock object of class FLStock 
+#' @param sel list of selex parameters of class of FLPars()  
+#' @param sr optional spawner-recruitment function FLSR
+#' @param fyears number of forecase years   
+#' @param nyears number of years for reference conditions   
+#' @param Fref F to be projected, default Fsq 
+#' @param plim set fbar for ages with Selectivy >= plim (default 1)
+#' @return FLStocks object
+#' @export
+selex.fwd = function(sel,stock,sr=NULL,fyears=30,nyears=3,plim=1){
+  # merge discards to avoid issues in projections
+  object = sel
+  if(class(object)=="FLPars") object = par2sa(object,stock)
+  # set Fbar range 
+  #stock=fbar2f(stock)
+  stock=fbar2f(stock,nyears=nyears,plim=plim)
+  
+  # use geomean sr if sr = NULL (only growth overfishing)
+  if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method="BFGS")
+  
+  # reference selex
+  Fsq = fabs(stock,nyears=nyears)
+  if(is.null(Fref)) Fref=Fsq
+  dy = range(stock)[["maxyear"]]
+  
+  yrs = (dy+1):(dy+fyears)
+  Sobs = selage(stock,nyears=nyears)
+  # prepare stock structure for backtest
+  stkf = stf(stock,fyears)
+  ctrl_f <- fwdControl(data.frame(year = yrs,
+                                  quant = "f",
+                                  value = an(Fref)))
 
-
+  # Current selectivity
+  stkobs = stkf
+  harvest(stkobs)[,ac(yrs)][] = Sobs
+  stkobs = fbar2f(stkobs,plim=plim)
+  stkobs = fwd(stkobs, control = ctrl_f, sr = sr)
+  
+  
+  out = FLStocks(lapply(object,function(x){
+    stk = stkf
+    harvest(stk)[,ac(yrs)][] = x
+    stk = fbar2f(stk,plim=plim)
+    stk = fwd(stk, control = ctrl_f, sr = sr)
+    #stk = window(stk,start=dy-2)
+    
+  })) 
+  
+  out = Map(function(x,y){
+    x@name = paste(y)
+    x
+  },out,as.list(object@names))
+  
+  stkobs@name = "obs"
+  out = FLStocks(c(FLStocks(obs=stkobs),out))
+  
+  return(out)
+}
 
 

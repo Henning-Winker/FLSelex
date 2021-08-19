@@ -16,6 +16,7 @@ Depends:
     FLBRP
 Imports:
   methods,
+  FLasher,
   ggplot2,
   gridExtra,
   metR

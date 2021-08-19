@@ -182,16 +182,25 @@ plotFselex = function(brps,what =c("Fref","Fmsy","F0.1")){
     p <- p + geom_line(aes(y = Catch/max(Catch), colour = "YPR"))
     p <- p + scale_y_continuous(sec.axis = sec_axis(~.*scale , name = expression(SPR/SPR[0])))
   }
-  p <- p + scale_colour_manual(values = c("red", "blue"))
+  p <- p + scale_colour_manual(values = c("blue", "red"))
   if(!pr) p <- p + labs(y = "Relative Yield",x = "Age-at-50%-Selectivity",colour = "")
   if(pr) p <- p + labs(y = "Relative YPR",x = "Age-at-50%-Selectivity",colour = "")
   p <- p + theme(legend.position = "bottom")
+  Aopt = dat[dat$Catch==max(dat$Catch),]
+  p = p+geom_segment(x=an(Aopt$sel),xend=an(Aopt$sel),y=0,yend=Aopt$BB0/scale,col="red",linetype="dotted")
+  p = p+geom_segment(x=an(Aopt$sel),xend=max(an(dat$sel))+10,y=Aopt$BB0/scale,yend=Aopt$BB0/scale,col="red",linetype="dotted")
+  p = p+geom_segment(x=0,xend=an(Aopt$sel),y=1,yend=1,col="blue",linetype="dotted")
+  #p = p+geom_segment(x=an(Aopt$sel),xend=an(Aopt$sel),y=Aopt$BB0/scale,yend=1,col="blue",linetype="dotted")
+  p=p + geom_point(aes(x= an(Aopt$sel),y=Aopt$Catch/max(Catch)),col="blue",size=3) 
+  p=p + geom_point(aes(x= an(Aopt$sel),y=Aopt$BB0/scale),col="red",size=3) 
+  
+  
   #p = p+annotate("text",x=mean(an(dat$sel)),y=1,label=paste0(what,"=",round(dat$F[1],3)))
   if(Obs){
     S50 = s50(brps[[1]]@landings.sel/max(brps[[1]]@landings.sel))
-    p = p+geom_segment(x =S50,xend=S50,y=0,yend=0.99 ,linetype="dotted")
+    p = p+geom_segment(x =S50,xend=S50,y=0,yend=0.95 ,linetype="dashed")
     if(pr & what =="Fmsy") what="Fmax" 
-    p = p+annotate("text",x=S50+0.03,y=0.991,label=paste0(what," = ",round(dat$F[1],3)),size=3)
+    p = p+annotate("text",x=S50+0.03,y=0.97,label=paste0(what," = ",round(dat$F[1],3)),size=3)
   }
   return(p)
 }
@@ -361,4 +370,46 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
   if(length(panels)==1) return(plots[[panels]])  
 } #}}}
 
+#{{{
+#' plotprjselex()
+#
+#' return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths
+#'
+#' @param object FLStocks output from selex.forward/selex.backtest() 
+#' @param panels choice of plots 1:4
+#' @param ncol number of columns
+#' @param colours optional, e.g. terrain.col, rainbow, etc.
+#' @return ggplot   
+#' @export
 
+plotprjselex = function(object,panels=NULL, ncol=2,colours=NULL,zoom=TRUE){
+  # Colour function
+  if(is.null(colours)){colf = r4col} else {colf = colours}
+  if(is.null(panels)) panels=1:4
+  if(zoom)object = window(object,start=dims(object[[2]])[["minyear"]]-5)
+  
+  #Prep data
+  dat = do.call(rbind,lapply(object,function(x){
+  df = as.data.frame(FLQuants(Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
+          Prop.Juveniles = apply(catch.n(x)*(1-mat(x)),2,sum)/apply(catch.n(x),2,sum)*100,
+          SSB = ssb(x),
+          Catch = catch(x)))
+  data.frame(sel=x@name,df)
+  }))
+  dat$qname = ifelse(dat$qname=="Harvest","Harvest rate",paste(dat$qname))
+  dat$qname = ifelse(dat$qname=="Prop.Juveniles","Juvenile catch (%)",paste(dat$qname))
+  
+  d. = dat[dat$sel!="obs",]
+  obs = dat[dat$sel=="obs",]
+  d.$S50 = an(d.$sel)
+  d.$obs = c(obs$data,rep(NA,nrow(d.)-nrow(obs)))
+  p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(col=S50), na.rm=TRUE)+
+  facet_wrap(~qname, scales="free")+ylab("Quantity")+xlab("Year")+
+  scale_color_gradientn(colours=rev(colf(20)[3:20]))+
+  geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)
+  return(p)
+  } #}}}
+
+  
+  
+  

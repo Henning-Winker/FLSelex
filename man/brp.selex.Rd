@@ -2,7 +2,7 @@
 % Please edit documentation in R/FLselex.R
 \name{brp.selex}
 \alias{brp.selex}
-\title{function to do nyears backtest of selex pattern in FLStocks}
+\title{Compute equilibrium quantaties across selectivity curves}
 \usage{
 brp.selex(sel, stock, sr = NULL, Fref = NULL, nyears = 3)
 }
@@ -21,5 +21,5 @@ brp.selex(sel, stock, sr = NULL, Fref = NULL, nyears = 3)
 FLBRPs object
 }
 \description{
-function to do nyears backtest of selex pattern in FLStocks
+Compute equilibrium quantaties across selectivity curves
 }

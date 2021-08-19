@@ -19,3 +19,4 @@ plot(FLSRs(bh=bh))
 # add ssr function to brp.selex
 brps.sr = brp.selex(pars,stock=stk,sr=bh)
 ploteqselex(brps.sr)
+ploteqselex(brps.sr,panels=4)
