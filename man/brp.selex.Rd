@@ -4,7 +4,7 @@
 \alias{brp.selex}
 \title{Compute equilibrium quantaties across selectivity curves}
 \usage{
-brp.selex(sel, stock, sr = NULL, Fref = NULL, nyears = 3)
+brp.selex(sel, stock, sr = NULL, Fref = NULL, nyears = 3, plim = 0.975)
 }
 \arguments{
 \item{sel}{selex FLPars() or Sa FLQuants}

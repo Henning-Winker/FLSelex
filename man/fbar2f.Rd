@@ -4,12 +4,14 @@
 \alias{fbar2f}
 \title{fbar2f()}
 \usage{
-fbar2f(stock, nyears = 3, plim = 1)
+fbar2f(stock, nyears = 3, plim = 0.975)
 }
 \arguments{
 \item{stock}{class FLStock}
 
 \item{nyears}{number of end years for reference}
+
+\item{plim}{set fbar for ages with Selectivy >= plim (default 0.975)}
 }
 \value{
 FLStock

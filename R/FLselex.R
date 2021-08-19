@@ -340,9 +340,10 @@ as.ogive <- function(object){
 #' Function to set fbar range to F = max(Fa)  
 #' @param stock class FLStock
 #' @param nyears number of end years for reference
+#' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStock
 #' @export 
-fbar2f <- function(stock,nyears=3,plim=1){
+fbar2f <- function(stock,nyears=3,plim=0.975){
 sel = yearMeans(tail(catch.sel(stock),nyears)) 
 age = dims(stock)[["min"]]:dims(stock)[["max"]]
 if(plim==1)range(stock)[6:7] = rep(age[which(sel==max(sel))[1]],2)
@@ -379,11 +380,11 @@ par2sa <- function(pars,object,nyears=3){
 #' @param nyears number of years for reference conditions   
 #' @return FLBRPs object
 #' @export
-brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3){
+brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3,plim=0.975){
   obs=TRUE
   object= sel
   stock = allcatch(stock)
-  stock = fbar2f(stock)
+  stock = fbar2f(stock,plim=plim)
   if(is.null(Fref)) Fref= fabs(stock,nyears)    
  if(class(object)=="FLPars") object = par2sa(object,stock)
  if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method="BFGS")
@@ -414,7 +415,7 @@ brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3){
 #' @param sr optional spawner-recruitment function FLSR
 #' @param byears number of backtest years   
 #' @param nyears number of years for reference conditions   
-#' @param plim set fbar for ages with Selectivy >= plim (default 1)
+#' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStocks object
 #' @export
 selex.backtest = function(sel,stock,sr=NULL,byears=10,nyears=3,plim=1){
@@ -473,10 +474,10 @@ return(out)
 #' @param fyears number of forecase years   
 #' @param nyears number of years for reference conditions   
 #' @param Fref F to be projected, default Fsq 
-#' @param plim set fbar for ages with Selectivy >= plim (default 1)
+#' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStocks object
 #' @export
-selex.fwd = function(sel,stock,sr=NULL,fyears=30,nyears=3,plim=1){
+selex.fwd = function(sel,stock,sr=NULL,fyears=30,nyears=3,plim=0.975){
   # merge discards to avoid issues in projections
   object = sel
   if(class(object)=="FLPars") object = par2sa(object,stock)

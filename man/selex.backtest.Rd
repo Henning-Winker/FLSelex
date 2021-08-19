@@ -17,7 +17,7 @@ selex.backtest(sel, stock, sr = NULL, byears = 10, nyears = 3, plim = 1)
 
 \item{nyears}{number of years for reference conditions}
 
-\item{plim}{set fbar for ages with Selectivy >= plim (default 1)}
+\item{plim}{set fbar for ages with Selectivy >= plim (default 0.975)}
 }
 \value{
 FLStocks object
