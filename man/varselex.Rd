@@ -5,7 +5,7 @@
 \title{function to dynamically vary selex parameters}
 \usage{
 varselex(
-  selpar,
+  pars,
   stock,
   step = 0.1,
   amin = NULL,
@@ -16,6 +16,8 @@ varselex(
 )
 }
 \arguments{
+\item{pars}{5 selex parameters of class FLPar}
+
 \item{stock}{optional stock object for tuning of age range}
 
 \item{step}{step size of change in one or several pars}
@@ -29,8 +31,6 @@ varselex(
 \item{type}{option of selectivity change "crank","shift" or "dynamic"}
 
 \item{return}{type of returned object FLPars or FLQuants}
-
-\item{selexpar}{5 selex parameters of class FLPar}
 }
 \value{
 selex parameters (FLPars)
