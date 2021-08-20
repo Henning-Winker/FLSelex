@@ -388,7 +388,8 @@ brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3,plim=0.975){
   if(is.null(Fref)) Fref= fabs(stock,nyears)    
  if(class(object)=="FLPars") object = par2sa(object,stock)
  if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method="BFGS")
- brps =FLBRPs(lapply(object,function(x){
+ 
+  brps =FLBRPs(lapply(object,function(x){
    stk = stock
    stk@harvest[] = x
    brp = brp(FLBRP(fbar2f(stk),sr))
@@ -414,11 +415,12 @@ brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3,plim=0.975){
 #' @param sel list of selex parameters of class of FLPars()  
 #' @param sr optional spawner-recruitment function FLSR
 #' @param byears number of backtest years   
+#' @param Fref option to input current sel value or  refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")   
 #' @param nyears number of years for reference conditions   
 #' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStocks object
 #' @export
-selex.backtest = function(sel,stock,sr=NULL,byears=10,nyears=3,plim=1){
+selex.backtest = function(sel,stock,sr=NULL,Fref=NULL,byears=10,nyears=3,plim=1){
 # merge discards to avoid issues in projections
 object = sel
 if(class(object)=="FLPars") object = par2sa(object,stock)
@@ -439,9 +441,17 @@ Sobs = selage(stock,nyears=nyears)
 # prepare stock structure for backtest
 stkf = window(stock,end=dy)
 stkf = stf(stkf,byears)
+if(is.null(Fref)){ Fref=an(Fobs)} else {
+  refs = refpts(brp(FLBRP(stock,sr)))
+  if(Fref=="F0") Fref = refs["virgin","harvest"]+0.001
+  if(Fref=="Fmsy") Fref = refs["msy","harvest"]
+  if(Fref=="F0.1") Fref = refs["f0.1","harvest"]
+  if(Fref=="Fspr30") Fref = refs["spr30","harvest"]
+  if(Fref=="Fsq") Fref = Fsq
+} 
 ctrl_f <- fwdControl(data.frame(year = yrs,
                           quant = "f",
-                          value = an(Fobs)))
+                          value = an(Fref)))
 # Recruitment residuals
 rec_res = exp(sr@residuals)
 # Current selectivity
@@ -472,12 +482,12 @@ return(out)
 #' @param sel list of selex parameters of class of FLPars()  
 #' @param sr optional spawner-recruitment function FLSR
 #' @param fyears number of forecase years   
-#' @param nyears number of years for reference conditions   
-#' @param Fref F to be projected, default Fsq 
+#' @param Fref option to input current sel refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")   
+#' @param nyears number of years for reference conditions
 #' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStocks object
 #' @export
-selex.fwd = function(sel,stock,sr=NULL,fyears=30,nyears=3,plim=0.975){
+selex.fwd = function(sel,stock,sr=NULL,fyears=30,Fref=NULL,nyears=3,plim=0.975){
   # merge discards to avoid issues in projections
   object = sel
   if(class(object)=="FLPars") object = par2sa(object,stock)
@@ -490,7 +500,15 @@ selex.fwd = function(sel,stock,sr=NULL,fyears=30,nyears=3,plim=0.975){
   
   # reference selex
   Fsq = fabs(stock,nyears=nyears)
-  if(is.null(Fref)) Fref=Fsq
+  if(is.null(Fref)){ Fref=an(Fsq)} else {
+    refs = refpts(brp(FLBRP(stock,sr)))
+    if(Fref=="F0") Fref = refs["virgin","harvest"]+0.001
+    if(Fref=="Fmsy") Fref = refs["msy","harvest"]
+    if(Fref=="F0.1") Fref = refs["f0.1","harvest"]
+    if(Fref=="Fspr30") Fref = refs["spr30","harvest"]
+    if(Fref=="Fsq") Fref = Fsq
+  } 
+
   dy = range(stock)[["maxyear"]]
   
   yrs = (dy+1):(dy+fyears)
@@ -513,7 +531,7 @@ selex.fwd = function(sel,stock,sr=NULL,fyears=30,nyears=3,plim=0.975){
     harvest(stk)[,ac(yrs)][] = x
     stk = fbar2f(stk,plim=plim)
     stk = fwd(stk, control = ctrl_f, sr = sr)
-    #stk = window(stk,start=dy-2)
+    stk = window(stk,start=dy)
     
   })) 
   

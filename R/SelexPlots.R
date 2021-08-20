@@ -175,14 +175,14 @@ plotFselex = function(brps,what =c("Fref","Fmsy","F0.1")){
   p <- ggplot(dat, aes(x = an(sel)))
   if(!pr){
   p <- p + geom_line(aes(y = BB0/scale, colour = "SSB"))
-  p <- p + geom_line(aes(y = Catch/max(Catch), colour = "Catch"))
+  p <- p + geom_line(aes(y = Catch/max(Catch), colour = "Yield"))
   p <- p + scale_y_continuous(sec.axis = sec_axis(~.*scale , name = expression(SSB/SSB[0])))
   } else {
     p <- p + geom_line(aes(y = BB0/scale, colour = "SPR"))
     p <- p + geom_line(aes(y = Catch/max(Catch), colour = "YPR"))
     p <- p + scale_y_continuous(sec.axis = sec_axis(~.*scale , name = expression(SPR/SPR[0])))
   }
-  p <- p + scale_colour_manual(values = c("blue", "red"))
+  p <- p + scale_colour_manual(values = c("red", "blue"))
   if(!pr) p <- p + labs(y = "Relative Yield",x = "Age-at-50%-Selectivity",colour = "")
   if(pr) p <- p + labs(y = "Relative YPR",x = "Age-at-50%-Selectivity",colour = "")
   p <- p + theme(legend.position = "bottom")
@@ -247,10 +247,14 @@ Fselex = function(brps,what =c("Fref","Fmsy","F0.1")){
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
 #' @return ggplot   
 #' @export
-ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=2,colours=NULL){
+ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL){
 # Colour function
 if(is.null(colours)){colf = r4col} else {colf = colours}
 if(is.null(panels)) panels=1:4
+if(is.null(ncol)){
+  if(length(panels)%in%c(1,3)){ncol=length(panels)} else {ncol=2}
+}
+
 # Check range
 if(paste(brps[[1]]@model)[3]%in%c("ifelse(ssb <= b, a * ssb, a * b)","a + ssb/ssb - 1")){
 pr = TRUE
@@ -378,24 +382,34 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #' @param object FLStocks output from selex.forward/selex.backtest() 
 #' @param panels choice of plots 1:4
 #' @param ncol number of columns
+#' @param nyears number of years back from assessment year shown
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
 #' @return ggplot   
 #' @export
 
-plotprjselex = function(object,panels=NULL, ncol=2,colours=NULL,zoom=TRUE){
+plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL){
   # Colour function
+  if(is.null(nyears)) nyears = dim(object[[1]])[2]-dim(object[[2]])[2]+1
   if(is.null(colours)){colf = r4col} else {colf = colours}
   if(is.null(panels)) panels=1:4
-  if(zoom)object = window(object,start=dims(object[[2]])[["minyear"]]-5)
-  
+  if(is.null(ncol)){
+    if(length(panels)%in%c(1,3)){ncol=1} else {ncol=2}
+  }
+  object = window(object,start=dims(object[[2]])[["minyear"]]-nyears)
+  nc = length(object)+3
   #Prep data
+  
   dat = do.call(rbind,lapply(object,function(x){
-  df = as.data.frame(FLQuants(Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
+  df = as.data.frame(FLQuants(
+          Catch = catch(x),
+          Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
           Prop.Juveniles = apply(catch.n(x)*(1-mat(x)),2,sum)/apply(catch.n(x),2,sum)*100,
           SSB = ssb(x),
-          Catch = catch(x)))
+           )[panels])
   data.frame(sel=x@name,df)
   }))
+  
+  
   dat$qname = ifelse(dat$qname=="Harvest","Harvest rate",paste(dat$qname))
   dat$qname = ifelse(dat$qname=="Prop.Juveniles","Juvenile catch (%)",paste(dat$qname))
   
@@ -404,8 +418,8 @@ plotprjselex = function(object,panels=NULL, ncol=2,colours=NULL,zoom=TRUE){
   d.$S50 = an(d.$sel)
   d.$obs = c(obs$data,rep(NA,nrow(d.)-nrow(obs)))
   p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(col=S50), na.rm=TRUE)+
-  facet_wrap(~qname, scales="free")+ylab("Quantity")+xlab("Year")+
-  scale_color_gradientn(colours=rev(colf(20)[3:20]))+
+  facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")+
+  scale_color_gradientn(colours=rev(colf(nc)[-c(1:2)]))+
   geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)
   return(p)
   } #}}}

@@ -13,10 +13,10 @@ Depends:
     ggplot2,
     FLCore,
     ggplotFL,
-    FLBRP
+    FLBRP,
+    FLasher
 Imports:
   methods,
-  FLasher,
   ggplot2,
   gridExtra,
   metR
