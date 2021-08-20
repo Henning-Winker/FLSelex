@@ -11,13 +11,13 @@ Sa = selage(stk)
 
 fit = fitselex(Sa)
 plotselex(fit)
-pars = varselex(fit$par,stk,step=0.1,type="dynamic")
+pars = varselex(fit$par,stk,step=0.2,type="dynamic")
 plotselex(pars,stk)
 brps = brp.selex(pars,stk)
 plotFselex(brps)
 ploteqselex(brps)
 # backtest
-bt = selex.backtest(pars,stk,Fref=0.2)
+bt = selex.backtest(pars,stk,sr=bh,Fref="Fmsy")
 plotprjselex(bt)
 # Deterministic foward projection
 fw = selex.fwd(pars,stk)
