@@ -1,0 +1,361 @@
+---
+title: "User Guide: Selectivity Analysis with FLSelex in FLR "
+author: 
+ - Hennig Winker (JRC-European Commission)
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    keep_tex: false
+vignette: >
+  %\VignetteIndexEntry{ss3daigs Vignetted}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r wrap-hook, echo = FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+```
+
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "  " ,fig.align = 'center', cache=FALSE,tidy.opts=list(width.cutoff=80), tidy=TRUE)
+
+```
+
+
+
+# Getting started {#s1}
+
+This vignette introduces the `FLSelex` R package available on https://github.com/Henning-Winker/FLSelex, as a support tool for analysing the impact of varying fisheries selectivity pattern in `FLR`. 
+
+## Installation
+
+`FLSelex` requires very recent versions of `FLR` libraries `FLCore`, `FLBRP`, `FLasher` and `ggplotFL`. This can be installed together with `FLSelex` from gihtub using library(devtools):
+
+```{r, eval=FALSE}
+installed.packages("devtools")
+
+devtools::install_github("flr/FLCore")
+
+devtools::install_github("flr/FLBRP")
+
+devtools::install_github("flr/FLasher")
+
+devtools::install_github("flr/ggplotFL")
+
+devtools::install_github("henning-winker/FLSelex")
+
+```
+
+However, due to increasing difficulties of compiling C++ code with Rtools for Windows systems, these are also provided a binary package zip files here. Not a dependency, but a very useful to explore selectivity pattern under alternative stock recruitment relationships is the new [`FLSRTMBbeta`]() (Winker and Mosqueira, 2021), for which the latest binary package zip for Windows can be found [here](). 
+
+
+```{r}
+library(FLCore)
+library(FLBRP)
+library(FLasher)
+library(FLSelex)
+library(ggplotFL)
+```
+
+## Selectivity-at-age
+
+The starting point for an `FLSelex` analysis is a `FLStock` generated from an age-structured assessment (e.g. a4a, SAM, SS3) or simulation. Therefore, selectivity is expressed as selectivity-at-age (`Sa`), such that:
+
+$$
+S_{a} =  \frac{F_a}{max(F_a)}  
+$$
+where $F_a$ is the instantaneous rate of fishing mortality at age (e.g. Sampson and Scott 2011).
+
+A common assumption is that $S_a$ follows a logistic curve in the form of an ogive. However, initial exploration of `FLStock` objects based on recent ICES benchmark assessments indicate the a logistic is the exception than the norm (c.f. Scott and Davies 2011). The North Sea plaice `FLStock` example `data(ple4)` from `FLCore` therefore provides a somewhat typical example for observed fishery selectivity $F_a$ pattern estimates.
+
+```{r fig1, fig.height=3.5, fig.cap = "Observed $S_a$ = $F_a$/$F_{max}$ for North Sea place over the recent 5 years"}
+
+data(ple4)
+
+plotselage(ple4,nyears=5)
+
+```
+ 
+<br>
+ 
+The average $S_a$ over `nyears` is made easy to extract as an `FLQuant` using `selage()` 
+
+```{r}
+Sa = selage(ple4,nyears=3)
+Sa
+
+```
+ 
+## The Selex function 
+ 
+A variaty of dome-shaped selectivity can arise because $F_a$ and thus $S_a$ is estimated on combined fleet level, combining multiple fleet (gear) segments that fish over a wide range of different areas. In fact, Sampson and Davies (2011) demonstrated that a logistic selectivity pattern would require that all age-classes would be equally distributed in space and time and harvested with the gear that is associated with a logistic selectivity.
+
+To accomodate a wide variaty of selectivity curves, `FLSelex` provides a flexible 5-parameter parameteric `selex()` function, which comprises the following three compouds:
+
+1. A $logistic$ describing the ascending limb of the selectivity curve
+
+$$
+S_a = \frac{1}{1+exp(-log(19)\frac{a-S_{50}}{S_{95}-S_{50}})} 
+$$
+where $S_{50}$ and $S_{95}$ are the ages where $S_a$ corresponds to 0.5 and 0.95.
+
+2. An adjustable $halfnormal$ decribing the descending  
+
+$$
+S_a = -(D_{min}-1)\frac{dnorm(age, S_{max},S_{max}D_{cv})}{max(dnorm(S_{max},S_{max}D_{cv}))}+1
+$$
+
+where $dnorm$ denotes a normal probability density distribution, S_{max} corresponds to the mean of the normal distribution where $S_a$ peaks, $D_{cv}$ determines the slope of the descending limb with the standardeviation of the normal give by the product $S_{max}D_{cv}$, and $D_{min}$ determines the mimimum the descending slope (height). 
+
+The expected $S_a$ is then defined as a peace-wise function of the form:
+
+$$
+S_{a} = \left\{ \begin{array}{ll}
+			g(logistic)           &\mbox{ if $age < S_a$} \\
+		  g(halfnormal)        &\mbox{ if $age \ge S_{a}$}    
+		\end{array}
+       \right.
+$$
+
+\newpage
+
+Fitting `selex()` to any `Sa` is done `optim` optimization with `fitselex()` 
+
+<br>
+
+```{r fig2, fig.height=3.5, fig.cap = "Observed $S_a$ and fitted $S_a$ for North Sea place using `fitselex()`"}
+
+Sa = selage(ple4,nyears=3)
+
+fit = fitselex(Sa)
+
+plotselex(pars=fit,Sa=Sa)
+
+```
+<br>
+<br>
+
+Plotting with `plotselex()` also provides option `compounds=TRUE` to visualize the different compounds of `selex` fit. 
+
+<br>
+
+```{r fig3, fig.height=3.5, fig.cap = "Observed $S_a$ and fitted $S_a$ for North Sea plaice illustrating the compounds of the piece-wise `selex` function. logis: logistic of acending curve ($S_{50}$, $S_{95}$), hnorm: unadjusted halfnormal ($S_{max}$, $D_{cv}$) for the descending curve, height:  adjusted height of the halfnormal ($D_{min}$)"}
+
+plotselex(pars=fit,Sa=Sa,compounds=TRUE)
+
+``` 
+<br>
+
+
+
+In some cases a simplification of the fitted selectivity to an ogive may be desired. `FLSelex` provides this option via the function `as.ogive()`.
+
+```{r fig4, fig.height=3.5, fig.cap = "Observed $S_a$ and fitted $S_a$ for North Sea place, assuming a simplified logistic selectivity"}
+
+ogivefit = as.ogive(fit)
+
+plotselex(pars=ogivefit,Sa=Sa)
+
+```
+<br>
+
+It should be noted, however, that such simplification may drastically change the underlying stock dynamics and is unlikely compatible with expected dynamics from the original assessment and associated advice.
+
+\newpage
+
+## Varying selectivity-at-age
+
+Currently `FLSelex` provides three inbuilt option to vary the estimated `selex` parameters via the function `varselex()`:
+
+1. The option $crank$ sequentially changes $S_{50}$, thereby changing ascending slope of the curve, given an upper bound at $S_{95}$. This change in selectivity pattern is intended to represent a situation where targeting of young fish can be minimized, e.g. through spatial-temporal closure of nursery grounds or gear through exclusion.   
+
+<br>
+<br>
+
+```{r fig5, fig.height=3.5, fig.cap = "Cranking the ascending slope of the estimated  selectivity curve by varying $S_{50}$ "}
+
+crank = varselex(pars=fit$par,stock=ple4,step=0.1,type="crank")
+
+plotselex(pars=crank,Sa=Sa)
+
+```
+
+2. The option $shift$ sequentially changes $S_{50}$, $S_{95}$ and $S_{max}$ thereby shifting the selectivity curve, while retaining the shape unchanged. The default upper bound is to theoretical age at $A_{opt}$ where an unfished cohort attains its maximum biomass (Froese et al. 2008; Froese et al. 2016), which is computed internally by the function `aopt()`. Alternatively, the user has the option to customize the range by specifying `amin` and `amax`.  
+
+<br>
+<br>
+
+```{r fig6, fig.height=3.5, fig.cap = "Shifting the estimated  selectivity curve in its unchanged shape  by varying $S_{50}$, $S_{95}$ and $S_{max}$"}
+
+shift = varselex(pars=fit$par,stock=ple4,step=0.1,type="shift")
+
+plotselex(pars=shift,Sa=Sa)
+
+```
+
+<br>
+\newpage
+
+3. The option $dynamic$ dynamically combines $crank$ and $shift$ by first craking the ascending limb close to $S_{95}$ and shifting the resulting curve towards larger ages. This dynamic change in the selectivity pattern is intended to approximate situations where (1) reduction small specimens in the catch is achieved through larger mesh sizes of active gears, thereby reducing drag associated with higher catchability of larger and faster fish, (2) reduction small specimens in the catch is achieved through a spatial shift in fishing effort to areas with higher densitiy of older fish or (3) some combination of (1) and (2). 
+
+<br>
+<br>
+
+
+```{r fig7, fig.height=3.5, fig.cap = "Shifting the estimated  selectivity curve in its unchanged shape  by varying $S_{50}$, $S_{95}$ and $S_{max}$"}
+
+dyn = varselex(pars=fit$par,stock=ple4,step=0.1,type="dynamic")
+
+plotselex(pars=dyn,Sa=Sa)
+
+```
+
+\newpage
+
+<br>
+<br>
+
+## Using apical $F$ as a standardized metric for evaluating selectivy  
+
+Comparing the impacts of alternative selectivity pattern requires setting the instantaneous rate of fishing mortaly $F$ at comparable constant levels. For this purpose, it is important to consider that the definition of selectivity differs across regions. In Europe, it common to use $\bar{F_y}$ as a measure of annual $F$, whereas in many other regions (e.g. US West Coast, South Africa, Austrial and New Zealand) the so called apical $F_{apical}$ = $max(F_a)$ is used as a standard metric. 
+
+With regards to isolating the selectivity effect, $\bar{F_y}$ has the undesirable property that its scale depends on the pre-specified age range across which $F_a$ is averaged. For example, if $\bar{F_y}$ is set to ages 2-4 to represent the dominant age classes under the current selectivity regime, but the goal is to evaluate the effect of selecting fish only at age-5, a common $\bar{F_y}$ would result in disproportionately high $F_a$ on ages 5+. This is because $\bar{F_y}$ is computed for age ranges that are hardly selected for the definition $S_a$ = $F_a$/$max(F_a)$ as is used in `FLR`. For this reason, and consistent with previous studies (e.g. Samson and Davies 2011), the $F_{apical}$ is used as $F$ as the standardized quantity to compare stock responses across selectivity pattern in `FLSelex`. To implement this in `FLR`, the $\bar{F_y}$ range determined by  `fbarmin` and `fbarmax` is dynamically adjusted in the `FLStock` object to the $max(F_a)$ under each selectivity scenario under equilibrium conditions.
+
+## Estimating selectivty effects at equilibrium
+
+The function `brp.selex()` computes reference points and values of $SSB$, recruitment, yield and catch at equilibrium over a range of $F_{apical}$ for the selectivity parameter output from `varselex()` 
+
+```{r}
+
+pars = varselex(fit$par,ple4,type="dynamic")
+
+brps = brp.selex(pars,ple4)
+
+class(brps)
+```
+As a default option a the stock recruitment function is fitted with `model="geomean` and therefore effectively produces relative per-recruit results that acount for growth over-fishing but ignore recruitment over-fishing.
+
+The results can then be visualized using `ploteqselex` and
+
+<br>
+<br>
+
+```{r fig8, fig.height=5.5, fig.cap = "Plots showing the trade-offs between $S_50$ and $F$ with respect to relative yield-per-recruit and the  spawning ratio potential (SPR, or spawning biomass per recruit). Dashed lines connecting at solid black dots denote the expected outcome of current $F$ and $S_a$ at equilibrium"}
+
+ploteqselex(brps)
+
+```
+
+\newpage
+
+In addition, `brp.selex` provides the option to evaluate potential recruitment overfishing by incorporating a stock-recruitment relationship (SRR). For this example, a simple Beverton-Holt model is fitted using `fmle()` in from `FLR`
+
+```{r fig9, fig.height=3.5, fig.cap = "Fit of a Beverholt Model to the spawing stock biomass and recruitment estimates for North Sea plaice",message=FALSE,warning=FALSE,result='hide'}
+
+sr = as.FLSR(ple4,model=bevholt)
+bh = fmle(sr)
+plot(FLSRs(bh))+theme(legend.position = "right")
+
+```
+<br>
+
+\newpage
+
+The function `brp.selex()` can now be updated with the SRR and the effect visualized with `ploteqselex()`
+
+<br>
+
+```{r fig10, fig.height=4.5, fig.cap = "Plots showing the trade-offs between $S_50$ and $F$ with respect to relative yield and and $SSB$ based on a Beverton-Holt SSR. Dashed lines connecting at solid black dots denote the expected outcome of current $F$ and $S_a$ at equilibrium"}
+
+brps.sr = brp.selex(pars,ple4,sr=bh)
+ploteqselex(brps.sr)
+
+```
+
+\newpage
+
+An additional plotting function is `plotFselex()`. In the absence of a SRR, `plotFselex()` illustrates relative changes in $YPR$ and $SPR$ as function of a selected `Fref`, which is by default the average $F$ over the three years. If a SSR is provided relative changes are representative of total yield and $SSB$    
+
+
+```{r fig12, fig.height=6.5,fig.width=5, fig.cap = "Plots showing relative changes in (top) $YPR$ and $SPR$ and (bottom) yield and $SSB$ over range of $S50$ values under the current $F$ "}
+
+p1=plotFselex(brps,what="Fref")+ggtitle("Per-Recruit")
+p2=plotFselex(brps.sr,what="Fref")+ggtitle("Beverton-Holt SRR")
+gridExtra::grid.arrange(p1,p2,ncol=1)
+
+```
+
+
+\newpage
+
+## Forecasting with `FLSelex`
+
+Forecasting over a range of selectivity pattern is conducted with `FLasher` using the function `selex.fwd()`. All forecasts assume deterministic recruitment, so at long-term forecasts are equivalent to the equilibrium estimates from `selex.brp`. While forecasting is computational more demanding as thus limited to a specified $F$ value (default $F_{cur}$), it provides the increased flexible for computing additional quantities of interest from the output in the form of a `FLStocks` objects. Currently, two additional quantities are computed routinely: (1) Harvest rate as a direct indicator for relative fishing effort and (2) percentage juveniles in the catches.
+
+For the relationship between fishing effort and harvest rate consider the central relationship between catch ($C$), effort ($E$), the biomass that vulnerable to the fishery ($V_B$) and catchability ($q$):
+
+$$
+C = qEV_B 
+$$
+with harvest rate is defined as
+
+$$
+H=C/V_B
+$$
+
+Substituting $H$, it follows that 
+
+$$
+H = qE 
+$$
+
+If $q$ is assumed constant, then $H$ is linear proportional to $E$.
+
+The percentage of juveniles in the catches is computed as ratio of the number immature to the total number of fish in the catch.
+
+Like `brp.select`, `selex.fwd()` enables the inclusion of a SRR. In the following example the projection horizon is set to 30 years, and the projection are conducted with default option for $F_{cur}$ (mean average apical F across the 3 most recent years). 
+
+```{r fig14, fig.height=5.5, fig.cap = "Plots showing the responses of Catch, Harvest Rate, Percentage of juveniles in the catch and SSB to changes in selectivity for determistic future forecasts over 30 years"}
+
+bt = selex.fwd(pars,ple4,sr=bh,fyears=30)
+plotprjselex(bt)
+```
+<br><br>
+
+## Backtesting with `FLSelex`
+
+A backtest is a form of hindcasting and allows the impact of a management strategy to be evaluated as if it had actually been used in the past. In contrast to forecasting, backtests require no assumptions about stochasticity in the population as variations in, e.g. recruitment, $M_a$ or $W_a$ prescriped as estimated from the data. Like `selex.fwd`, `selex.backtest` is implemented with `FLasher` and produces an `FLStocks` object as output. In the following example, the backtest is conducted without specifying a SSR.  
+
+```{r fig16, fig.height=5.5, fig.cap = "Plots showing the responses of Catch, Harvest Rate, Percentage of juveniles in the catch and SSB to changes in selectivity if they had actually been implemeted in 2009"}
+
+bt = selex.backtest(pars,ple4,byears=10)
+plotprjselex(bt)
+```
+
+\newpage
+
+## References
+
++ Froese, R., Stern-Pirlot, A., Winker, H., and Gascuel, D. 2008. Size matters: How single-species management can contribute to ecosystem-based fisheries management. Fisheries Research, 92: 231–241.
+
++ Froese, R., Winker, H., Gascuel, D., Sumaila, U. R., and Pauly, D. 2016. Minimizing the impact of fishing. Fish and Fisheries, 17.
+
++ Sampson, D. B., and Scott, R. D. 2011. A spatial model for fishery age-selection at the population level. Canadian Journal of Fisheries and Aquatic Sciences, 68: 1077–1086.
+ 
+
+
+

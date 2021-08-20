@@ -17,10 +17,10 @@ brps = brp.selex(pars,stk)
 plotFselex(brps)
 ploteqselex(brps)
 # backtest
-bt = selex.backtest(pars,stk,sr=bh,Fref="Fmsy")
+bt = selex.backtest(pars,stk,Fref="Fmsy")
 plotprjselex(bt)
 # Deterministic foward projection
-fw = selex.fwd(pars,stk)
+fw = selex.fwd(pars,stk,sr=bh)
 plotprjselex(fw)
 
 
