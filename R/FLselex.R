@@ -234,7 +234,7 @@ aopt<-function(stock,nyears=3){
 #
 #' function to dynamically vary selex parameters 
 #'
-#' @param selexpar 5 selex parameters of class FLPar 
+#' @param pars 5 selex parameters of class FLPar 
 #' @param stock optional stock object for tuning of age range  
 #' @param step step size of change in one or several pars
 #' @param amin start of S50
@@ -246,9 +246,9 @@ aopt<-function(stock,nyears=3){
 #' @return selex parameters (FLPars) 
 #' @export 
 
-varselex = function(selpar,stock,step=0.1,amin=NULL,amax=NULL,
+varselex = function(pars,stock,step=0.1,amin=NULL,amax=NULL,
                     nyears=3,type=c("crank","shift","dynamic"),return=c("Pars","Sa")){
-
+selpar=pars  
 type = type[1]
 return = return[1]
 if(is.null(amin)) amin = round(selpar[[1]]*0.7,1)
