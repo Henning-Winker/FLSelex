@@ -4,7 +4,15 @@
 \alias{selex.fwd}
 \title{function to forcast nyears under different selex patterns}
 \usage{
-selex.fwd(sel, stock, sr = NULL, fyears = 30, nyears = 3, plim = 0.975)
+selex.fwd(
+  sel,
+  stock,
+  sr = NULL,
+  fyears = 30,
+  Fref = NULL,
+  nyears = 3,
+  plim = 0.975
+)
 }
 \arguments{
 \item{sel}{list of selex parameters of class of FLPars()}
@@ -15,11 +23,11 @@ selex.fwd(sel, stock, sr = NULL, fyears = 30, nyears = 3, plim = 0.975)
 
 \item{fyears}{number of forecase years}
 
+\item{Fref}{option to input current sel refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")}
+
 \item{nyears}{number of years for reference conditions}
 
 \item{plim}{set fbar for ages with Selectivy >= plim (default 0.975)}
-
-\item{Fref}{F to be projected, default Fsq}
 }
 \value{
 FLStocks object

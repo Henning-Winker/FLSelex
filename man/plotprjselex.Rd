@@ -5,7 +5,7 @@
 \title{plotprjselex()
 return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths}
 \usage{
-plotprjselex(object, panels = NULL, ncol = 2, colours = NULL, zoom = TRUE)
+plotprjselex(object, panels = NULL, ncol = NULL, colours = NULL, nyears = NULL)
 }
 \arguments{
 \item{object}{FLStocks output from selex.forward/selex.backtest()}
@@ -15,6 +15,8 @@ plotprjselex(object, panels = NULL, ncol = 2, colours = NULL, zoom = TRUE)
 \item{ncol}{number of columns}
 
 \item{colours}{optional, e.g. terrain.col, rainbow, etc.}
+
+\item{nyears}{number of years back from assessment year shown}
 }
 \value{
 ggplot

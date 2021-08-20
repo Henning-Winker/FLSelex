@@ -5,7 +5,7 @@
 \title{ploteqselex()
 return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths}
 \usage{
-ploteqselex(brps, Fmax = 2, panels = NULL, ncol = 2, colours = NULL)
+ploteqselex(brps, Fmax = 2, panels = NULL, ncol = NULL, colours = NULL)
 }
 \arguments{
 \item{brps}{output from brp.selex()}

@@ -4,7 +4,15 @@
 \alias{selex.backtest}
 \title{function to do nyears backtest of selex pattern in FLStocks}
 \usage{
-selex.backtest(sel, stock, sr = NULL, byears = 10, nyears = 3, plim = 1)
+selex.backtest(
+  sel,
+  stock,
+  sr = NULL,
+  Fref = NULL,
+  byears = 10,
+  nyears = 3,
+  plim = 1
+)
 }
 \arguments{
 \item{sel}{list of selex parameters of class of FLPars()}
@@ -12,6 +20,8 @@ selex.backtest(sel, stock, sr = NULL, byears = 10, nyears = 3, plim = 1)
 \item{stock}{stock object of class FLStock}
 
 \item{sr}{optional spawner-recruitment function FLSR}
+
+\item{Fref}{option to input current sel value or  refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")}
 
 \item{byears}{number of backtest years}
 
