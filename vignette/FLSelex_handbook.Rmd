@@ -60,7 +60,7 @@ devtools::install_github("henning-winker/FLSelex")
 
 ```
 
-However, due to increasing difficulties of compiling C++ code with Rtools for Windows systems, these are also provided a binary package zip files here. Not a dependency, but a very useful to explore selectivity pattern under alternative stock recruitment relationships is the new [`FLSRTMBbeta`](https://github.com/Henning-Winker/FLSelex/tree/main/binary_package/win) (Winker and Mosqueira, 2021), for which the latest binary package zip for Windows can be found [here](https://github.com/Henning-Winker/FLSRTMBbeta/tree/main/BinaryPackage/win). 
+However, due to increasing difficulties of compiling C++ code with Rtools for Windows systems, these are also provided a binary package zip files [here](https://github.com/Henning-Winker/FLSelex/tree/main/binary_package/win). Not a dependency, but a very useful to explore selectivity pattern under alternative stock recruitment relationships is the new [`FLSRTMBbeta`](https://github.com/Henning-Winker/FLSelex/tree/main/binary_package/win) (Winker and Mosqueira, 2021), for which the latest binary package zip for Windows can be found [here](https://github.com/Henning-Winker/FLSRTMBbeta/tree/main/BinaryPackage/win). 
 
 
 ```{r}
