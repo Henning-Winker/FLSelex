@@ -19,7 +19,7 @@ Compiling C++ in windows can be troublesome. As an alternative to installing fro
 
 # User Handbook
 
-Documentation of the available applications and plotting functions is provided in the Draft [FLSelex Handbook]()
+Documentation of the available applications and plotting functions is provided in the preliminary [`FLSelex` Handbook](https://github.com/Henning-Winker/FLSelex/blob/main/vignette/FLSelex_handbook.pdf)
 
 # Licence
 
