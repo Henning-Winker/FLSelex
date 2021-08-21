@@ -5,17 +5,25 @@
 ### Author: Henning Winker (EC-JRC) 
 
 # Installation
-Installing ss3diags requires the librabry(devtools), which can be install by 'install.packages('devtools')' and a R version >= 3.5. `FLSRTBMbeta` also requires the latest version of `library(FLCore)` and suggests using `library(ggplotFL)` for plotting. All can be installed from github.
 
-`devtools::install_github("flr/FLCore")`
+`FLSelex` requires very recent versions of `FLR` libraries `FLCore`, `FLBRP`, `FLasher` and `ggplotFL`. This can be installed together with `FLSelex` from gihtub using library(devtools):
 
-`devtools::install_github("flr/ggplotFL")`
+```{r, eval=FALSE}
+installed.packages("devtools")
 
-`devtools::install_github("henning-winker/FLSRTMBbeta")`
+devtools::install_github("flr/FLCore")
 
-`library(FLSRTMBbeta)`
+devtools::install_github("flr/FLBRP")
 
-Compiling C++ in windows can be troublesome. As an alternative to installing from github, a windows package binary zip file can be downloaded [here](https://github.com/Henning-Winker/FLSRTMBbeta/tree/main/BinaryPackage/win).
+devtools::install_github("flr/FLasher")
+
+devtools::install_github("flr/ggplotFL")
+
+devtools::install_github("henning-winker/FLSelex")
+
+```
+However, due to increasing difficulties of compiling C++ code with Rtools for Windows systems, these are also provided a binary package zip files here. Not a dependency, but a very useful to explore selectivity pattern under alternative stock recruitment relationships is the new [`FLSRTMBbeta`](https://github.com/Henning-Winker/FLSelex/tree/main/binary_package/win) (Winker and Mosqueira, 2021), for which the latest binary package zip for Windows can be found [here](https://github.com/Henning-Winker/FLSRTMBbeta/tree/main/BinaryPackage/win). 
+
 
 # User Handbook
 
