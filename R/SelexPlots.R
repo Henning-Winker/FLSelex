@@ -27,10 +27,12 @@ r4col <- function(n,alpha=1){
 #' @param Sa observed selectivity-at-age (FLQuant) or FLStock 
 #' @param obs show observations if TRUE
 #' @param compounds option to show selex compounds
-#'
+#' @param legend.title option for customized legend.title for discrete scenarios only
+#' @param max.discrete determines max selectivities after which plot legend becomes continous 
+#' 
 #' @return FLQuant of Selectivity-at-age Sa  
 #' @export
-plotselex<- function(pars,Sa=NULL,obs=NULL,compounds=FALSE,colours=NULL){
+plotselex<- function(pars,Sa=NULL,obs=NULL,compounds=FALSE,colours=NULL,legend.title="S50",max.discrete=8){
   if(is.null(obs)) obs=TRUE
   if(class(Sa)=="FLStock") Sa = selage(Sa)
   object = pars
@@ -57,7 +59,7 @@ plotselex<- function(pars,Sa=NULL,obs=NULL,compounds=FALSE,colours=NULL){
   
   
   
-if(length(pred)<6){
+if(length(pred)<9){
   if(compounds==TRUE & length(pred)==1){
     seldat = as.data.frame(pred[[1]][c(3:5,2)]) 
     cols=c(rainbow(3),"black")
@@ -79,17 +81,19 @@ if(length(pred)<6){
   if(length(pred)==1){
     p=p + scale_color_manual("Selex",values=cols)
   } else {
-    p = p +scale_colour_discrete("S50")
+    p = p +scale_colour_discrete(legend.title)
   }
   if(obs & length(pred)==1) p = p+geom_point(data=as.data.frame(Sa),aes(x=age,y=data), fill="white",shape=21,size=2)
   if(obs & length(pred)>1) p = p+geom_line(data=as.data.frame(Sa),aes(x=age,y=data),linetype="dashed")
   
   p = p +ylab("Selectivity")+xlab("Age")+
-    scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))
+    scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
+    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))
+    
   }
   
   
-  if(length(pred)>=6){
+  if(length(pred)>=9){
     seldat = FLQuants(lapply(pred,function(x){
       x[["fitted"]]}))
     compounds=FALSE
@@ -384,10 +388,11 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #' @param ncol number of columns
 #' @param nyears number of years back from assessment year shown
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
+#' @param discrete if TRUE legend will show descrete runs 
 #' @return ggplot   
 #' @export
 
-plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL){
+plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,discrete=FALSE){
   # Colour function
   if(is.null(nyears)) nyears = dim(object[[1]])[2]-dim(object[[2]])[2]+1
   if(is.null(colours)){colf = r4col} else {colf = colours}
@@ -405,6 +410,10 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL){
           Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
           Prop.Juveniles = apply(catch.n(x)*(1-mat(x)),2,sum)/apply(catch.n(x),2,sum)*100,
           SSB = ssb(x),
+          Frec.F = harvest(x)[1,]/fbar(x),
+          Prop.Aopt  = apply(catch.n(x)[ac(aopt(x)):range(x)[["max"]],],2,sum)/apply(catch.n(x),2,sum)*100
+          
+          
            )[panels])
   data.frame(sel=x@name,df)
   }))
@@ -412,18 +421,29 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL){
   
   dat$qname = ifelse(dat$qname=="Harvest","Harvest rate",paste(dat$qname))
   dat$qname = ifelse(dat$qname=="Prop.Juveniles","Juvenile catch (%)",paste(dat$qname))
+  dat$qname = ifelse(dat$qname=="Frec.F","Frec/F",paste(dat$qname))
+  dat$qname = ifelse(dat$qname=="Prop.Aopt","Proportion Aopt (%)",paste(dat$qname))
   
   d. = dat[dat$sel!="obs",]
   obs = dat[dat$sel=="obs",]
   d.$S50 = an(d.$sel)
   d.$obs = c(obs$data,rep(NA,nrow(d.)-nrow(obs)))
+  
+  if(!discrete){
   p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(col=S50), na.rm=TRUE)+
-  facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")+
   scale_color_gradientn(colours=rev(colf(nc)[-c(1:2)]))+
+  facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")+
   geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)
+  } else {
+    p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(colour=sel), na.rm=TRUE)+
+      geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)+
+      facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")
+     
+  }
+  
   return(p)
   } #}}}
 
-  
+
   
   

@@ -4,7 +4,15 @@
 \alias{plotselex}
 \title{plots mean selectivity at age Sa across selected years}
 \usage{
-plotselex(pars, Sa = NULL, obs = NULL, compounds = FALSE, colours = NULL)
+plotselex(
+  pars,
+  Sa = NULL,
+  obs = NULL,
+  compounds = FALSE,
+  colours = NULL,
+  legend.title = "S50",
+  max.discrete = 8
+)
 }
 \arguments{
 \item{pars}{selexpars FLPars(s) or output from fitselex()}
@@ -14,6 +22,10 @@ plotselex(pars, Sa = NULL, obs = NULL, compounds = FALSE, colours = NULL)
 \item{obs}{show observations if TRUE}
 
 \item{compounds}{option to show selex compounds}
+
+\item{legend.title}{option for customized legend.title for discrete scenarios only}
+
+\item{max.discrete}{determines max selectivities after which plot legend becomes continous}
 }
 \value{
 FLQuant of Selectivity-at-age Sa

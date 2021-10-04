@@ -235,9 +235,20 @@ Comparing the impacts of alternative selectivity pattern requires setting the in
 
 With regards to isolating the selectivity effect, $\bar{F_y}$ has the undesirable property that its scale depends on the pre-specified age range across which $F_a$ is averaged. For example, if $\bar{F_y}$ is set to ages 2-4 to represent the dominant age classes under the current selectivity regime, but the goal is to evaluate the effect of selecting fish only at age-5, a common $\bar{F_y}$ would result in disproportionately high $F_a$ on ages 5+. This is because $\bar{F_y}$ is computed for age ranges that are hardly selected for the definition $S_a$ = $F_a$/$max(F_a)$ as is used in `FLR`. For this reason, and consistent with previous studies (e.g. Samson and Davies 2011), the $F_{apical}$ is used as $F$ as the standardized quantity to compare stock responses across selectivity pattern in `FLSelex`. To implement this in `FLR`, the $\bar{F_y}$ range determined by  `fbarmin` and `fbarmax` is dynamically adjusted in the `FLStock` object to the $max(F_a)$ under each selectivity scenario under equilibrium conditions.
 
+The conversion from the original $\bar{F_y}$ to the age where $F_{apical}$ = $max(F_a)$ is automatically done internally for each selectivity pattern, but can also be called manually:
+
+```{r}
+
+range(ple4)[c("minfbar","maxfbar")]
+test = fbar2f(ple4)
+range(test)[c("minfbar","maxfbar")]
+
+```
+
+
 ## Estimating selectivty effects at equilibrium
 
-The function `brp.selex()` computes reference points and values of $SSB$, recruitment, yield and catch at equilibrium over a range of $F_{apical}$ for the selectivity parameter output from `varselex()` 
+The function `brp.selex()` computes reference points and values of $SSB$, recruitment, yield and catch at equilibrium over a range of $F_{apical}$ for the selectivity parameter output from `varselex()` using the `FLBRP` package.   
 
 ```{r}
 
@@ -247,7 +258,11 @@ brps = brp.selex(pars,ple4)
 
 class(brps)
 ```
+
+An important to note feature of `FLBRP` is that it currently bases yield estimates on landings only and not on the total catch including discards. To include discards in the equilibrium computation `brp.selex()` therefore internally set `landings` = `catch` and `discards` to 0 using the function `allcatch()`. 
+
 As a default option a the stock recruitment function is fitted with `model="geomean` and therefore effectively produces relative per-recruit results that acount for growth over-fishing but ignore recruitment over-fishing.
+
 
 The results can then be visualized using `ploteqselex` and
 
