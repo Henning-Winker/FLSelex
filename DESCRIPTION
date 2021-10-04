@@ -1,6 +1,6 @@
 Package: FLSelex
 Title: Selectivity analysis in FLR
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     c(person(given = "Henning",
            family = "Winker",
