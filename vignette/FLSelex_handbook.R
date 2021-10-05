@@ -34,7 +34,7 @@ library(ggplotFL)
 
 data(ple4)
 
-plotselage(ple4,nyears=5)
+plotselage(ple4,nyears=3)
 
 ## --------------------------------------------------------------------
 Sa = selage(ple4,nyears=3)
@@ -46,7 +46,7 @@ Sa = selage(ple4,nyears=3)
 
 fit = fitselex(Sa)
 
-plotselex(pars=fit,Sa=Sa)
+plotselex(pars=fit,Sa=Sa,compounds = T)
 
 
 

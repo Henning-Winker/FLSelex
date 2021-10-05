@@ -90,7 +90,7 @@ selexpars <- function(Sa,S50=NULL,S95=NULL,Smax=NULL,Dcv=NULL,Dmin=NULL){
   if(is.null(S95))  S95=an(quantile(c(S50proxy,selex.dat[peak[1],1]),0.9))
   if(is.null(Smax))  Smax=selex.dat[max(peak),1]*1.1
   if(is.null(Dcv))  Dcv=0.2 #(1-sel[nrow(sa)])#/length(age[age>peak])
-  if(is.null(Dmin))  Dmin=sel[nrow(sa)]
+  if(is.null(Dmin))  Dmin=min(sel[nrow(sa)],0.7)
   
   pars = FLPar(S50=S50,S95=S95,Smax=Smax,Dcv=Dcv,Dmin=Dmin)
   return(pars)
@@ -126,7 +126,7 @@ selex <- function(Sa,pars){
   psel_a = 1/(1+exp(-log(19)*(selex.dat$age-S50)/(S95-S50)))
   psel_b = dnorm(selex.dat$age,Smax,Dcv*Smax)/max(dnorm(selex.dat$age,Smax,Dcv*Smax))
   psel_c = 1+(Dmin-1)*(psel_b-1)/-1
-  psel = ifelse(selex.dat$age<Smax,psel_a,psel_c)
+  psel = ifelse(selex.dat$age>=max(Smax),psel_c,psel_a)
   #psel = ifelse(psel_a<0.95,psel_a,psel_c)
   #psel = psel/max(psel)
   #psel = pmin(psel,0.999)
@@ -176,11 +176,13 @@ fitselex <- function(Sa,S50=NULL,S95=NULL,Smax=NULL,Dcv=NULL,Dmin=NULL,CVlim=0.5
   imp[4] = CVlim/3
   lower = imp*0.3
   upper = imp*2
+  upper[3] = max(as.data.frame(Sa)$age)*2
+  lower[3] = min(as.data.frame(Sa)$age[which(as.data.frame(Sa)$data==1)])
   #upper[5] = max(min(1,imp[5]),0.2)
   upper[4] = CVlim
   lower[4] = 0.05
   lower[5]= 0.0001
-
+  upper[5]= 0.75
   # Likelihood
   jsel.ll = function(par=imp,data=Sa){
     Sa=data
