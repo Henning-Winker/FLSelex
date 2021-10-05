@@ -98,7 +98,7 @@ if(length(pred)<9){
       x[["fitted"]]}))
     compounds=FALSE
     dat = as.data.frame(seldat)
-    dat$S50 = an(dat$qname)
+    dat$S50 = an(as.character(dat$qname))
     if(obs){
     Sobs = as.data.frame(Sa)
     dat$ao = c(Sobs$age,rep(NA,nrow(dat)-nrow(Sobs)))
