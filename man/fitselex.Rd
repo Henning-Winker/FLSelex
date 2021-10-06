@@ -11,7 +11,8 @@ fitselex(
   Smax = NULL,
   Dcv = NULL,
   Dmin = NULL,
-  CVlim = 0.5
+  CVlim = 0.5,
+  logistic = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ fitselex(
 \item{Dmin}{init value height of the descending slop at maximum age}
 
 \item{CVlim}{sets upper CV bound}
+
+\item{ogive}{fit logistic}
 }
 \value{
 list with fit and FLquants selex predictions

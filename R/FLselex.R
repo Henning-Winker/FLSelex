@@ -164,9 +164,10 @@ selex <- function(Sa,pars){
 #' @param Dcv init value CV of halfnormal determining the steepness of the descending slope
 #' @param Dmin init value height of the descending slop at maximum age
 #' @param CVlim sets upper CV bound
+#' @param ogive fit logistic 
 #' @return list with fit and FLquants selex predictions
 #' @export 
-fitselex <- function(Sa,S50=NULL,S95=NULL,Smax=NULL,Dcv=NULL,Dmin=NULL,CVlim=0.5){
+fitselex <- function(Sa,S50=NULL,S95=NULL,Smax=NULL,Dcv=NULL,Dmin=NULL,CVlim=0.5,logistic=FALSE){
   
   pars =selexpars(Sa=Sa,S50=S50,S95=S95,Smax=Smax,Dcv=Dcv,Dmin=Dmin)
   
@@ -183,6 +184,11 @@ fitselex <- function(Sa,S50=NULL,S95=NULL,Smax=NULL,Dcv=NULL,Dmin=NULL,CVlim=0.5
   lower[4] = 0.05
   lower[5]= 0.0001
   upper[5]= 0.75
+  if(logistic){
+    lower[3]= 100
+    upper[3]= 200
+    imp[3] = 150
+  }
   # Likelihood
   jsel.ll = function(par=imp,data=Sa){
     Sa=data
