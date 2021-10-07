@@ -8,7 +8,7 @@ selex.fwd(
   sel,
   stock,
   sr = NULL,
-  fyears = 30,
+  fyears = 50,
   Fref = NULL,
   nyears = 3,
   plim = 0.975

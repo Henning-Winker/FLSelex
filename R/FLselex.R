@@ -6,13 +6,19 @@
 #' @param stock Input FLStock object.
 #' @param nyears numbers of last years to compute selectivity
 #' @param year option to specify year range, overwrites nyears
+#' @param maturity if TRUE selage() extract mat_at_age
 #' @return FLQuant of Selectivity-at-age Sa  
 #' @export
-selage <- function (stock, nyears=3,year=NULL){
+selage <- function (stock, nyears=3,year=NULL,maturity=FALSE){
 if(is.null(year)){yr= (range(stock)["maxyear"]-nyears+1):range(stock)["maxyear"]} else {
 yr = year  
 }
+if(!maturity){
 Sa = apply(harvest(stock[,ac(yr)]),1,mean,na.rm=T)/max(apply(harvest(stock[,ac(yr)]),1,mean,na.rm=T),na.rm=T)
+} else {
+Sa = apply(mat(stock[,ac(yr)]),1,mean,na.rm=T)/max(apply(mat(stock[,ac(yr)]),1,mean,na.rm=T),na.rm=T)
+  
+}
 Sa@units = "NA"
 return(Sa)
 }
@@ -482,12 +488,13 @@ out = FLStocks(c(FLStocks(obs=stock),out))
 return(out)
 }
 
+# Add decrete plot option!
 #{{{
 # selex.fwd() 
 #
 #' function to forcast nyears under different selex patterns 
-#' @param stock stock object of class FLStock 
 #' @param sel list of selex parameters of class of FLPars()  
+#' @param stock stock object of class FLStock 
 #' @param sr optional spawner-recruitment function FLSR
 #' @param fyears number of forecase years   
 #' @param Fref option to input current sel refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")   
@@ -495,7 +502,7 @@ return(out)
 #' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStocks object
 #' @export
-selex.fwd = function(sel,stock,sr=NULL,fyears=30,Fref=NULL,nyears=3,plim=0.975){
+selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975){
   # merge discards to avoid issues in projections
   object = sel
   if(class(object)=="FLPars") object = par2sa(object,stock)

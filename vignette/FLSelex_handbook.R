@@ -76,7 +76,7 @@ plotselex(pars=crank,Sa=Sa)
 
 shift = varselex(pars=fit$par,stock=ple4,step=0.1,type="shift")
 
-plotselex(pars=shift,Sa=Sa)
+plotselex(pars=shift)
 
 
 

@@ -5,7 +5,7 @@
 \title{plots mean selectivity at age Sa across selected years}
 \usage{
 plotselex(
-  pars,
+  sel,
   Sa = NULL,
   obs = NULL,
   compounds = FALSE,
@@ -15,7 +15,7 @@ plotselex(
 )
 }
 \arguments{
-\item{pars}{selexpars FLPars(s) or output from fitselex()}
+\item{sel}{selexpars FLPars(s) or Sa FLquants or output from fitselex()}
 
 \item{Sa}{observed selectivity-at-age (FLQuant) or FLStock}
 

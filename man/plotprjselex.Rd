@@ -11,7 +11,7 @@ plotprjselex(
   ncol = NULL,
   colours = NULL,
   nyears = NULL,
-  discrete = FALSE
+  max.discrete = 8
 )
 }
 \arguments{
@@ -25,7 +25,7 @@ plotprjselex(
 
 \item{nyears}{number of years back from assessment year shown}
 
-\item{discrete}{if TRUE legend will show descrete runs}
+\item{max.discrete}{determines max selectivities after which plot legend becomes continous}
 }
 \value{
 ggplot

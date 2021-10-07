@@ -23,7 +23,7 @@ r4col <- function(n,alpha=1){
 #
 #' plots mean selectivity at age Sa across selected years 
 #'
-#' @param pars selexpars FLPars(s) or output from fitselex()
+#' @param sel selexpars FLPars(s) or Sa FLquants or output from fitselex()
 #' @param Sa observed selectivity-at-age (FLQuant) or FLStock 
 #' @param obs show observations if TRUE
 #' @param compounds option to show selex compounds
@@ -32,10 +32,14 @@ r4col <- function(n,alpha=1){
 #' 
 #' @return FLQuant of Selectivity-at-age Sa  
 #' @export
-plotselex<- function(pars,Sa=NULL,obs=NULL,compounds=FALSE,colours=NULL,legend.title="S50",max.discrete=8){
+plotselex<- function(sel,Sa=NULL,obs=NULL,compounds=FALSE,colours=NULL,legend.title="S50",max.discrete=8){
+  if(is.null(obs) & class(sel)=="FLQuants") obs=FALSE
   if(is.null(obs)) obs=TRUE
+  if(class(sel)=="FLQuant") sel = FLQuants(sel)  
   if(class(Sa)=="FLStock") Sa = selage(Sa)
-  object = pars
+  if(class(sel)=="FLQuants" & is.null(Sa)) Sa = sel[[1]]
+  flq = ifelse(class(sel)=="FLQuants",TRUE,FALSE)
+  object = sel
   if(is.null(colours)){colf = r4col} else {colf = colours}
   if(class(object)=="list"){
     pars = object$par
@@ -43,23 +47,36 @@ plotselex<- function(pars,Sa=NULL,obs=NULL,compounds=FALSE,colours=NULL,legend.t
   } else {
     pars=object  
   }
+  
+if(flq){
+    seldat=as.data.frame(pars)
+    max.discrete=100
+    compounds=FALSE
+    p = ggplot(as.data.frame(seldat))+
+      geom_line(aes(x=age,y=data,colour=qname))+geom_hline(yintercept = 0.5,linetype="dotted")+
+    scale_colour_discrete(legend.title)+
+    ylab("Selectivity")+xlab("Age")+
+      scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))
+    
+ } else {
+
   if(class(pars)=="FLPar"){
     pars = FLPars(pars)
     pars@names = paste0(round(pars[[1]][[1]],2))
   }
   if(is.null(Sa)){
     Sa = FLQuant(c(0.01,0.5,rep(1,ceiling(pars[[1]][[2]]*2)-2)),dimnames=list(age=1:ceiling(pars[[1]][[2]]*2)))  
-  obs=FALSE
+    obs=FALSE
   }
   # predict
   pdat = FLQuant(0.5,dimnames=list(age=seq(dims(Sa)$min,dims(Sa)$max,0.05))) 
   pred = lapply(pars,function(x){
     selex(pdat,x)
   })
+   
+  if(length(pred)<max.discrete){
   
-  
-  
-if(length(pred)<9){
   if(compounds==TRUE & length(pred)==1){
     seldat = as.data.frame(pred[[1]][c(3:5,2)]) 
     cols=c(rainbow(3),"black")
@@ -73,11 +90,10 @@ if(length(pred)<9){
       x[["fitted"]]}))
     compounds=FALSE
   }
-  
-  
   # Plot
   p = ggplot(as.data.frame(seldat))+
     geom_line(aes(x=age,y=data,colour=qname))+geom_hline(yintercept = 0.5,linetype="dotted")
+  
   if(length(pred)==1){
     p=p + scale_color_manual("Selex",values=cols)
   } else {
@@ -93,7 +109,7 @@ if(length(pred)<9){
   }
   
   
-  if(length(pred)>=9){
+  if(length(pred)>=max.discrete){
     seldat = FLQuants(lapply(pred,function(x){
       x[["fitted"]]}))
     compounds=FALSE
@@ -107,7 +123,6 @@ if(length(pred)<9){
     p = ggplot(data=dat,aes(x=age,y=data,group=S50))+    
     geom_line(aes(color=S50))+
     scale_color_gradientn(colours=rev(colf(20)))+
-    geom_line(aes(x=ao,y=so),linetype="dashed", na.rm=TRUE)+
     ylab("Selectivity")+xlab("Age")+
     scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))+
     
@@ -117,8 +132,11 @@ if(length(pred)<9){
             legend.key.width = unit(0.6, 'cm'),
             legend.title=element_text(size=9)
       )
+    if(obs) p = p+geom_line(aes(x=ao,y=so),linetype="dashed", na.rm=TRUE)
+      
+    
     }
-  
+ } # end of non flq loop
   return(p)  
 }
 # }}}
@@ -388,12 +406,14 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #' @param ncol number of columns
 #' @param nyears number of years back from assessment year shown
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
-#' @param discrete if TRUE legend will show descrete runs 
+#' @param max.discrete determines max selectivities after which plot legend becomes continous 
 #' @return ggplot   
 #' @export
 
-plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,discrete=FALSE){
-  # Colour function
+plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,max.discrete=8){
+  
+  discrete = ifelse(length(object)>max.discrete,FALSE,TRUE)
+    
   if(is.null(nyears)) nyears = dim(object[[1]])[2]-dim(object[[2]])[2]+1
   if(is.null(colours)){colf = r4col} else {colf = colours}
   if(is.null(panels)) panels=1:4
@@ -426,15 +446,17 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,d
   
   d. = dat[dat$sel!="obs",]
   obs = dat[dat$sel=="obs",]
-  d.$S50 = an(d.$sel)
+ 
   d.$obs = c(obs$data,rep(NA,nrow(d.)-nrow(obs)))
   
   if(!discrete){
+    d.$S50 = an(d.$sel)
   p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(col=S50), na.rm=TRUE)+
   scale_color_gradientn(colours=rev(colf(nc)[-c(1:2)]))+
   facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")+
   geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)
   } else {
+    d.$S50 = (d.$sel)
     p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(colour=sel), na.rm=TRUE)+
       geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)+
       facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")
@@ -444,6 +466,28 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,d
   return(p)
   } #}}}
 
+#{{{
+#' mleg()
+#
+#' function to adjust ggplot legend for multiplots
+#'
+#' @param size legend.key.size (cm)
+#' @param height legend.key.height (cm)
+#' @param width legend.key.width (cm)
+#' @param titel legend title size
+#' @param test legend text size
+#' @return legformat   
+#' @export
 
+mleg = function(size=0.5,height=0.5,width=0.5,title=6,text=6){
   
-  
+  legformat = theme(legend.key.size = unit(size, 'cm'), #change legend key size
+           legend.key.height = unit(height, 'cm'), #change legend key height
+           legend.key.width = unit(width, 'cm'), #change legend key width
+           legend.title = element_text(size=title), #change legend title font size
+           legend.text = element_text(size=text)) #change legend text font size
+
+  return(legformat)
+}  
+#}}}
+

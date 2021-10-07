@@ -4,7 +4,7 @@
 \alias{selage}
 \title{coverts harvest() and catch.sel() selectivity at age Sa}
 \usage{
-selage(stock, nyears = 3, year = NULL)
+selage(stock, nyears = 3, year = NULL, maturity = FALSE)
 }
 \arguments{
 \item{stock}{Input FLStock object.}
@@ -12,6 +12,8 @@ selage(stock, nyears = 3, year = NULL)
 \item{nyears}{numbers of last years to compute selectivity}
 
 \item{year}{option to specify year range, overwrites nyears}
+
+\item{maturity}{if TRUE selage() extract mat_at_age}
 }
 \value{
 FLQuant of Selectivity-at-age Sa

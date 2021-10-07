@@ -19,17 +19,20 @@ ploteqselex(brps)
 # backtest
 bt = selex.backtest(pars,stk,Fref="Fmsy")
 plotprjselex(bt)
+
+
+
 # Deterministic foward projection
 fw = selex.fwd(pars,stk,sr=bh)
 plotprjselex(fw)
 
 
+# add ssr function to brp.selex
 # SRR
 sr = as.FLSR(stk,model=bevholt)
 bh = fmle(sr)
 plot(FLSRs(bh=bh))
 
-# add ssr function to brp.selex
 brps.sr = brp.selex(pars,stock=stk,sr=bh)
 plotFselex(brps.sr)
 
