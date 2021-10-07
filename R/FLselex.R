@@ -267,7 +267,7 @@ type = type[1]
 return = return[1]
 if(is.null(amin)) amin = round(selpar[[1]]*0.7,1)
 if(type=="crank"){
-  if(is.null(amax)) amax = round(selpar[[2]]*0.95,1)
+  if(is.null(amax)) amax = round(selpar[[2]]*0.9,1)
 }
 if(type%in%c("shift","dynamic","selective")){
   if(is.null(amax)) amax = min(max(aopt(stock,nyears),selpar[[1]]),selpar[[1]]+6) 
@@ -299,6 +299,7 @@ if(type=="shift"){
   }))  
 }  
 pars@names = paste0(seqi)
+
 if(return=="Pars"){ 
   rtn = pars} else {
   rtn = FLQuants(lapply(pars,function(x){
@@ -547,9 +548,9 @@ selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975){
     stk = fbar2f(stk,plim=plim)
     stk = fwd(stk, control = ctrl_f, sr = sr)
     stk = window(stk,start=dy)
-    
   })) 
-  
+ 
+
   out = Map(function(x,y){
     x@name = paste(y)
     x

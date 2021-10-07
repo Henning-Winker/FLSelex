@@ -424,14 +424,16 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
   nc = length(object)+3
   #Prep data
   
+  
+  
   dat = do.call(rbind,lapply(object,function(x){
   df = as.data.frame(FLQuants(
           Catch = catch(x),
           Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
           Prop.Juveniles = apply(catch.n(x)*(1-mat(x)),2,sum)/apply(catch.n(x),2,sum)*100,
           SSB = ssb(x),
-          Frec.F = harvest(x)[1,]/fbar(x),
-          Prop.Aopt  = apply(catch.n(x)[ac(aopt(x)):range(x)[["max"]],],2,sum)/apply(catch.n(x),2,sum)*100
+          Frec.F = (harvest(x)[1,])/apply(harvest(x),2,max),
+          Prop.Aopt  = apply(0.001+catch.n(x)[ac(aopt(x)):range(x)[["max"]],],2,sum)/apply(0.001+catch.n(x),2,sum)*100
           
           
            )[panels])
