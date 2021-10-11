@@ -359,7 +359,7 @@ as.ogive <- function(object){
 #' @return FLStock
 #' @export 
 fbar2f <- function(stock,nyears=3,plim=0.975){
-sel = yearMeans(tail(catch.sel(stock),nyears)) 
+sel = selage(stock,nyears=nyears)
 age = dims(stock)[["min"]]:dims(stock)[["max"]]
 if(plim==1)range(stock)[6:7] = rep(age[which(sel==max(sel))[1]],2)
 if(plim<1) range(stock)[6:7] = c(min(age[which(sel>=plim)]),max(age[which(sel>=plim)]))  
