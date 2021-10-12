@@ -11,7 +11,7 @@ selex.backtest(
   Fref = NULL,
   byears = 10,
   nyears = 3,
-  plim = 1
+  plim = 0.975
 )
 }
 \arguments{
@@ -21,11 +21,11 @@ selex.backtest(
 
 \item{sr}{optional spawner-recruitment function FLSR}
 
-\item{Fref}{option to input current sel value or  refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")}
+\item{Fref}{option to input current F value, specify "catch" or  refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")}
 
 \item{byears}{number of backtest years}
 
-\item{nyears}{number of years for reference conditions}
+\item{nyears}{number of years for referencNULe conditions}
 
 \item{plim}{set fbar for ages with Selectivy >= plim (default 0.975)}
 }

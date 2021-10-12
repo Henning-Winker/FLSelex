@@ -403,6 +403,18 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #'
 #' @param object FLStocks output from selex.forward/selex.backtest() 
 #' @param panels choice of plots 1:4
+#' #' Numbering of subplots is as follows:
+#' \itemize{
+#'   \item 1  spawning biomass (SSB)
+#'   \item 2  catch
+#'   \item 3  Fjuv/F 
+#'   \item 4  Percentage juveniles in catch in numbers
+#'   \item 5  Harvest Rate = Catch/Vuln.Bio
+#'   \item 6  vuln.bio 
+#'   \item 7  fishing mortality F
+#'   \item 8  total biomass
+#'   \item 9  Frec/F (Vasilakopoulos et al. 2020)
+#'   \item 10 Percentage in catch >= aopt
 #' @param ncol number of columns
 #' @param nyears number of years back from assessment year shown
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
@@ -428,14 +440,17 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
   
   dat = do.call(rbind,lapply(object,function(x){
   df = as.data.frame(FLQuants(
-          Biomass = stock(x),
           Catch = catch(x),
-          Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
+          SSB = ssb(x),
           Fjuv.F = apply(harvest(x)*(1-mat(x)),2,mean)/apply(harvest(x),2,max),
           Prop.Juveniles = apply(catch.n(x)*(1-mat(x)),2,sum)/apply(catch.n(x),2,sum)*100,
-          SSB = ssb(x),
+          Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
+          Vuln.Bio = apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
+          F = fbar(x),
+          Biomass = stock(x),
           Frec.F = harvest(x)[1,]/apply(harvest(x),2,max),
           Prop.Aopt  = apply(0.001+catch.n(x)[ac(aopt(x)):range(x)[["max"]],],2,sum)/apply(0.001+catch.n(x),2,sum)*100
+          
           )[panels])
   data.frame(sel=x@name,df)
   }))

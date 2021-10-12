@@ -17,8 +17,6 @@ plotprjselex(
 \arguments{
 \item{object}{FLStocks output from selex.forward/selex.backtest()}
 
-\item{panels}{choice of plots 1:4}
-
 \item{ncol}{number of columns}
 
 \item{colours}{optional, e.g. terrain.col, rainbow, etc.}

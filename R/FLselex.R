@@ -430,12 +430,12 @@ brp.selex = function(sel,stock,sr=NULL,Fref=NULL,nyears=3,plim=0.975){
 #' @param sel list of selex parameters of class of FLPars()  
 #' @param sr optional spawner-recruitment function FLSR
 #' @param byears number of backtest years   
-#' @param Fref option to input current sel value or  refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")   
-#' @param nyears number of years for reference conditions   
+#' @param Fref option to input current F value, specify "catch" or  refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")   
+#' @param nyears number of years for referencNULe conditions   
 #' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
 #' @return FLStocks object
 #' @export
-selex.backtest = function(sel,stock,sr=NULL,Fref=NULL,byears=10,nyears=3,plim=1){
+selex.backtest = function(sel,stock,sr=NULL,Fref=NULL,byears=10,nyears=3,plim=0.975){
 # merge discards to avoid issues in projections
 object = sel
 if(class(object)=="FLPars") object = par2sa(object,stock)
@@ -456,17 +456,35 @@ Sobs = selage(stock,nyears=nyears)
 # prepare stock structure for backtest
 stkf = window(stock,end=dy)
 stkf = stf(stkf,byears)
-if(is.null(Fref)){ Fref=an(Fobs)} else {
+
+
+if(is.null(Fref)){
+  Fref=an(Fobs)
+  ctrl_f <- fwdControl(data.frame(year = yrs,
+                                  quant = "f",
+                                  value = an(Fref)))
+  }
+
+if(Fref[1] =="catch"){
+  
+  ctrl_f <- fwdControl(data.frame(year = yrs,
+                                  quant = "catch",
+                                  value = an(catch(stock)[,ac(yrs)])))
+}
+
+if(Fref[1]%in%c(c("F0","Fmsy","F0.1","Fspr30","Fsq"))){
   refs = refpts(brp(FLBRP(stock,sr)))
   if(Fref=="F0") Fref = refs["virgin","harvest"]+0.001
   if(Fref=="Fmsy") Fref = refs["msy","harvest"]
   if(Fref=="F0.1") Fref = refs["f0.1","harvest"]
   if(Fref=="Fspr30") Fref = refs["spr30","harvest"]
   if(Fref=="Fsq") Fref = Fsq
-} 
-ctrl_f <- fwdControl(data.frame(year = yrs,
+  ctrl_f <- fwdControl(data.frame(year = yrs,
                           quant = "f",
                           value = an(Fref)))
+}
+
+
 # Recruitment residuals
 rec_res = exp(sr@residuals)
 # Current selectivity

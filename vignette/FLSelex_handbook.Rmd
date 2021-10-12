@@ -143,7 +143,7 @@ Sa = selage(ple4,nyears=3)
 
 fit = fitselex(Sa)
 
-plotselex(pars=fit,Sa=Sa)
+plotselex(sel=fit,Sa=Sa)
 
 ```
 <br>
@@ -155,7 +155,7 @@ Plotting with `plotselex()` also provides option `compounds=TRUE` to visualize t
 
 ```{r fig3, fig.height=3.5, fig.cap = "Observed $S_a$ and fitted $S_a$ for North Sea plaice illustrating the compounds of the piece-wise `selex` function. logis: logistic of acending curve ($S_{50}$, $S_{95}$), hnorm: unadjusted halfnormal ($S_{max}$, $D_{cv}$) for the descending curve, height:  adjusted height of the halfnormal ($D_{min}$)"}
 
-plotselex(pars=fit,Sa=Sa,compounds=TRUE)
+plotselex(sel=fit,Sa=Sa,compounds=TRUE)
 
 ``` 
 <br>
@@ -168,7 +168,7 @@ In some cases a simplification of the fitted selectivity to an ogive may be desi
 
 ogivefit = as.ogive(fit)
 
-plotselex(pars=ogivefit,Sa=Sa)
+plotselex(sel=ogivefit,Sa=Sa)
 
 ```
 <br>
@@ -190,7 +190,7 @@ Currently `FLSelex` provides three inbuilt option to vary the estimated `selex` 
 
 crank = varselex(pars=fit$par,stock=ple4,step=0.1,type="crank")
 
-plotselex(pars=crank,Sa=Sa)
+plotselex(sel=crank,Sa=Sa)
 
 ```
 
@@ -203,7 +203,7 @@ plotselex(pars=crank,Sa=Sa)
 
 shift = varselex(pars=fit$par,stock=ple4,step=0.1,type="shift")
 
-plotselex(pars=shift,Sa=Sa)
+plotselex(sel=shift,Sa=Sa)
 
 ```
 
@@ -220,7 +220,7 @@ plotselex(pars=shift,Sa=Sa)
 
 dyn = varselex(pars=fit$par,stock=ple4,step=0.1,type="dynamic")
 
-plotselex(pars=dyn,Sa=Sa)
+plotselex(sel=dyn,Sa=Sa)
 
 ```
 

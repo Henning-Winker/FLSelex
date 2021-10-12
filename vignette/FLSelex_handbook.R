@@ -1,12 +1,13 @@
-#--------------------------------------------------------------
-# FLSelex R script based on Handbook
-# Henning Winker
-# JRC-EC
-# henning.winker@ec.europa.eu
-# Licence: EUPL
-#--------------------------------------------------------------
+#-----------------------------------------------------
+# FLSelex: Test Script FLSelex Handbook
+# Henning Winker JCR-EC
+# Email: henning.winker@ec.europa.eu
+# Licence: e EUPL 1.1.
+#-----------------------------------------------------
 
-## ---- eval=FALSE-----------------------------------------------------
+
+
+## ---- eval=FALSE------------------------------------------------------------------------------------------
 ## installed.packages("devtools")
 ## 
 ## devtools::install_github("flr/FLCore")
@@ -21,8 +22,7 @@
 ## 
 
 
-## --------------------------------------------------------------------
-# Load libraries
+## ---------------------------------------------------------------------------------------------------------
 library(FLCore)
 library(FLBRP)
 library(FLasher)
@@ -34,11 +34,15 @@ library(ggplotFL)
 
 data(ple4)
 
-plotselage(ple4,nyears=3)
+plotselage(ple4,nyears=5)
 
-## --------------------------------------------------------------------
+
+
+## ---------------------------------------------------------------------------------------------------------
 Sa = selage(ple4,nyears=3)
 Sa
+
+
 
 ## ----fig2, fig.height=3.5, fig.cap = "Observed $S_a$ and fitted $S_a$ for North Sea place using `fitselex()`"----
 
@@ -46,13 +50,13 @@ Sa = selage(ple4,nyears=3)
 
 fit = fitselex(Sa)
 
-plotselex(pars=fit,Sa=Sa,compounds = T)
+plotselex(sel=fit,Sa=Sa)
 
 
 
 ## ----fig3, fig.height=3.5, fig.cap = "Observed $S_a$ and fitted $S_a$ for North Sea plaice illustrating the compounds of the piece-wise `selex` function. logis: logistic of acending curve ($S_{50}$, $S_{95}$), hnorm: unadjusted halfnormal ($S_{max}$, $D_{cv}$) for the descending curve, height:  adjusted height of the halfnormal ($D_{min}$)"----
 
-plotselex(pars=fit,Sa=Sa,compounds=TRUE)
+plotselex(sel=fit,Sa=Sa,compounds=TRUE)
 
 
 
@@ -60,7 +64,7 @@ plotselex(pars=fit,Sa=Sa,compounds=TRUE)
 
 ogivefit = as.ogive(fit)
 
-plotselex(pars=ogivefit,Sa=Sa)
+plotselex(sel=ogivefit,Sa=Sa)
 
 
 
@@ -68,7 +72,7 @@ plotselex(pars=ogivefit,Sa=Sa)
 
 crank = varselex(pars=fit$par,stock=ple4,step=0.1,type="crank")
 
-plotselex(pars=crank,Sa=Sa)
+plotselex(sel=crank,Sa=Sa)
 
 
 
@@ -76,7 +80,7 @@ plotselex(pars=crank,Sa=Sa)
 
 shift = varselex(pars=fit$par,stock=ple4,step=0.1,type="shift")
 
-plotselex(pars=shift)
+plotselex(sel=shift,Sa=Sa)
 
 
 
@@ -84,11 +88,11 @@ plotselex(pars=shift)
 
 dyn = varselex(pars=fit$par,stock=ple4,step=0.1,type="dynamic")
 
-plotselex(pars=dyn,Sa=Sa)
+plotselex(sel=dyn,Sa=Sa)
 
 
 
-## --------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------------
 
 range(ple4)[c("minfbar","maxfbar")]
 test = fbar2f(ple4)
@@ -96,7 +100,7 @@ range(test)[c("minfbar","maxfbar")]
 
 
 
-## --------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------------
 
 pars = varselex(fit$par,ple4,type="dynamic")
 
