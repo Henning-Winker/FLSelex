@@ -3,7 +3,7 @@
 \name{plotprjselex}
 \alias{plotprjselex}
 \title{plotprjselex()
-return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths}
+Projection plot of FLStocks}
 \usage{
 plotprjselex(
   object,
@@ -11,11 +11,25 @@ plotprjselex(
   ncol = NULL,
   colours = NULL,
   nyears = NULL,
-  max.discrete = 8
+  max.discrete = 10
 )
 }
 \arguments{
 \item{object}{FLStocks output from selex.forward/selex.backtest()}
+
+\item{panels}{choice of plots 1:10
+\itemize{
+  \item 1  spawning biomass (SSB)
+  \item 2  catch
+  \item 3  Fjuv/F 
+  \item 4  Percentage juveniles in catch in numbers
+  \item 5  Harvest Rate = Catch/Vuln.Bio
+  \item 6  vuln.bio 
+  \item 7  fishing mortality F
+  \item 8  total biomass
+  \item 9  Frec/F (Vasilakopoulos et al. 2020)
+  \item 10 Percentage in catch >= aopt
+}}
 
 \item{ncol}{number of columns}
 
@@ -30,5 +44,5 @@ ggplot
 }
 \description{
 plotprjselex()
-return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths
+Projection plot of FLStocks
 }

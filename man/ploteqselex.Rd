@@ -3,25 +3,40 @@
 \name{ploteqselex}
 \alias{ploteqselex}
 \title{ploteqselex()
-return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths}
+Isopleth plot of Selectivity vs F}
 \usage{
-ploteqselex(brps, Fmax = 2, panels = NULL, ncol = NULL, colours = NULL)
+ploteqselex(
+  brps,
+  Fmax = 2,
+  panels = NULL,
+  ncol = NULL,
+  colours = NULL,
+  Ftrg = c("none", "fmsy", "f0.1")
+)
 }
 \arguments{
 \item{brps}{output from brp.selex()}
 
 \item{Fmax}{upper possible limit of  F range}
 
-\item{panels}{choice of plots 1:4}
+\item{panels}{choice of plots 1:4
+\itemize{
+  \item 1  F over Relative Yield
+  \item 2  F over SRP or SSB (requires ssr)
+  \item 3  Isopleth Yield
+  \item 4  Isopleth SPR or SSB (requires ssr)
+}}
 
 \item{ncol}{number of columns}
 
 \item{colours}{optional, e.g. terrain.col, rainbow, etc.}
+
+\item{Ftrg}{option to dynamic Ftrg=c("none","fmsy","f0.1")}
 }
 \value{
 ggplot
 }
 \description{
 ploteqselex()
-return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths
+Isopleth plot of Selectivity vs F
 }

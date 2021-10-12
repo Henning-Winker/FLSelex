@@ -260,16 +260,23 @@ Fselex = function(brps,what =c("Fref","Fmsy","F0.1")){
 #{{{
 #' ploteqselex()
 #
-#' return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths
+#' Isopleth plot of Selectivity vs F
 #'
 #' @param brps output from brp.selex() 
 #' @param Fmax upper possible limit of  F range
 #' @param panels choice of plots 1:4
+#' \itemize{
+#'   \item 1  F over Relative Yield
+#'   \item 2  F over SRP or SSB (requires ssr)
+#'   \item 3  Isopleth Yield
+#'   \item 4  Isopleth SPR or SSB (requires ssr)
+#' }   
 #' @param ncol number of columns
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
+#' @param Ftrg  option to dynamic Ftrg=c("none","fmsy","f0.1")
 #' @return ggplot   
 #' @export
-ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL){
+ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","fmsy","f0.1")){
 # Colour function
 if(is.null(colours)){colf = r4col} else {colf = colours}
 if(is.null(panels)) panels=1:4
@@ -278,11 +285,12 @@ if(is.null(ncol)){
 }
 
 # Check range
-if(paste(brps[[1]]@model)[3]%in%c("ifelse(ssb <= b, a * ssb, a * b)","a + ssb/ssb - 1")){
+if(paste(brps[[1]]@model)[3]%in%c("a + ssb/ssb - 1")){
 pr = TRUE
-lim = min(Fmax,max(2*refpts(brps[[1]])["f0.1","harvest"],refpts(brps[[1]])["Fref","harvest"]*1.05,dims(brps[[1]])[["min"]]))
+lim = min(Fmax,max(2*refpts(brps[[1]])["f0.1","harvest"],refpts(brps[[1]])["Fref","harvest"]*1.5,dims(brps[[1]])[["min"]]))
 quants = c("YPR","SPR")
 labs = c("Relative YPR",expression(SPR/SPR[0]))
+
 } else {
 pr = FALSE
 lim = min(Fmax,max(2*refpts(brps[[3]])["msy","harvest"],refpts(brps[[1]])["Fref","harvest"]*1.05,dims(brps[[1]])[["min"]]))
@@ -311,6 +319,13 @@ isodat$Fo = c(obs$harvest,rep(NA,nrow(isodat)-nrow(obs)))
 isodat$Yo = c(obs$yield,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$yield)
 isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 
+if(Ftrg[1]!="none"){
+ftrg = do.call(rbind,Map(function(x,y){
+if(Ftrg=="f0.1") frp= c(refpts(x)["f0.1","harvest"])
+if(Ftrg=="fmsy") frp= c(refpts(x)["msy","harvest"])
+data.frame(s50=y,ftrg=frp)
+},brps[-1],S50))
+}
   # F vs Yield
   P1 = ggplot(data=isodat,aes(x=harvest,y=yield/max(yield),group=S50))+
   geom_line(aes(color=S50))+geom_line(aes(x=Fo,y=Yo),size=0.7,linetype="dashed", na.rm=TRUE)+
@@ -354,7 +369,7 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
   metR::geom_contour2(aes(z=yield/max(yield)),color = grey(0.4,1),breaks =conbr )+ 
   metR::geom_text_contour(aes(z=yield/max(yield)),stroke = 0.2,size=3,skip=0,breaks = conbr)+
   scale_fill_gradientn(colours=rev(colf(nbr+3))[-c(10:11,13)],limits=c(-0.03,1), breaks=colbr, name=paste(quants[1]))+
-  geom_point(aes(x=Fobs,y=S50obs),size=2)+
+  geom_point(aes(x=Fobs,y=S50obs),size=2.5)+
   geom_segment(aes(x = Fobs, xend = Fobs, y = min(S50), yend = S50obs), colour = "black",size=0.3,linetype="dotted")+
   geom_segment(aes(x = 0, xend = Fobs, y = S50obs, yend = S50obs), colour = "black",size=0.3,linetype="dotted")+
     theme(legend.key.size = unit(1, 'cm'), #change legend key size
@@ -384,12 +399,15 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
         axis.title=element_text(size=10),
         legend.title=element_text(size=9)
         )+
-        geom_point(aes(x=Fobs,y=S50obs),size=2)+
+        geom_point(aes(x=Fobs,y=S50obs),size=2.5)+
   geom_segment(aes(x = Fobs, xend = Fobs, y = min(S50), yend = S50obs), colour = "black",size=0.3,linetype="dotted")+
   geom_segment(aes(x = 0, xend = Fobs, y = S50obs, yend = S50obs), colour = "black",size=0.3,linetype="dotted")+
   scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(-0.03, 0))+
   ylab("Age-at-50%-Selectivity")+xlab("Fishing Mortality")
-
+  if(Ftrg[1]!="none"){
+    P3 = P3+geom_point(data=ftrg,aes(x=ftrg,y=s50),shape = 21, colour = "black",size=1.1, fill = "white")
+    P4= P4+geom_point(data=ftrg,aes(x=ftrg,y=s50),shape = 21, colour = "black",size=1.1, fill = "white")
+  }
   plots <- list(P1=P1,P2=P2,P3=P3,P4=P4)
   
   if(length(panels)>1) return(gridExtra::grid.arrange(grobs =  plots[panels], ncol = ncol))  
@@ -399,11 +417,10 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #{{{
 #' plotprjselex()
 #
-#' return 2x2 plot showing F vs Sel for yield and ssb curves and isopleths
+#' Projection plot of FLStocks
 #'
 #' @param object FLStocks output from selex.forward/selex.backtest() 
-#' @param panels choice of plots 1:4
-#' #' Numbering of subplots is as follows:
+#' @param panels choice of plots 1:10
 #' \itemize{
 #'   \item 1  spawning biomass (SSB)
 #'   \item 2  catch
@@ -415,6 +432,7 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #'   \item 8  total biomass
 #'   \item 9  Frec/F (Vasilakopoulos et al. 2020)
 #'   \item 10 Percentage in catch >= aopt
+#' }   
 #' @param ncol number of columns
 #' @param nyears number of years back from assessment year shown
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
@@ -422,13 +440,13 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 #' @return ggplot   
 #' @export
 
-plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,max.discrete=8){
+plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,max.discrete=10){
   
   discrete = ifelse(length(object)>max.discrete,FALSE,TRUE)
     
   if(is.null(nyears)) nyears = dim(object[[1]])[2]-dim(object[[2]])[2]+1
   if(is.null(colours)){colf = r4col} else {colf = colours}
-  if(is.null(panels)) panels=1:4
+  if(is.null(panels)) panels=1:6
   if(is.null(ncol)){
     if(length(panels)%in%c(1,3)){ncol=1} else {ncol=2}
   }
