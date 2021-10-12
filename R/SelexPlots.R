@@ -428,15 +428,15 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
   
   dat = do.call(rbind,lapply(object,function(x){
   df = as.data.frame(FLQuants(
+          Biomass = stock(x),
           Catch = catch(x),
           Harvest=catch(x)/apply(stock.wt(x)*stock.n(x)*catch.sel(x),2,sum),
+          Fjuv.F = apply(harvest(x)*(1-mat(x)),2,mean)/apply(harvest(x),2,max),
           Prop.Juveniles = apply(catch.n(x)*(1-mat(x)),2,sum)/apply(catch.n(x),2,sum)*100,
           SSB = ssb(x),
-          Frec.F = (harvest(x)[1,])/apply(harvest(x),2,max),
+          Frec.F = harvest(x)[1,]/apply(harvest(x),2,max),
           Prop.Aopt  = apply(0.001+catch.n(x)[ac(aopt(x)):range(x)[["max"]],],2,sum)/apply(0.001+catch.n(x),2,sum)*100
-          
-          
-           )[panels])
+          )[panels])
   data.frame(sel=x@name,df)
   }))
   
@@ -444,6 +444,7 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
   dat$qname = ifelse(dat$qname=="Harvest","Harvest rate",paste(dat$qname))
   dat$qname = ifelse(dat$qname=="Prop.Juveniles","Juvenile catch (%)",paste(dat$qname))
   dat$qname = ifelse(dat$qname=="Frec.F","Frec/F",paste(dat$qname))
+  dat$qname = ifelse(dat$qname=="Fjuv.F","Fjuv/F",paste(dat$qname))
   dat$qname = ifelse(dat$qname=="Prop.Aopt","Proportion Aopt (%)",paste(dat$qname))
   
   d. = dat[dat$sel!="obs",]

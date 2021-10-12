@@ -501,21 +501,23 @@ return(out)
 #' @param Fref option to input current sel refpts = c("F0","Fmsy","F0.1","Fspr30","Fsq")   
 #' @param nyears number of years for reference conditions
 #' @param plim set fbar for ages with Selectivy >= plim (default 0.975)
+#' @param fbar option to not correct for Fbar
 #' @return FLStocks object
 #' @export
-selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975){
+selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975,fbar=FALSE){
   # merge discards to avoid issues in projections
   object = sel
   if(class(object)=="FLPars") object = par2sa(object,stock)
   # set Fbar range 
   #stock=fbar2f(stock)
-  stock=fbar2f(stock,nyears=nyears,plim=plim)
+  if(!fbar) stock=fbar2f(stock,nyears=nyears,plim=plim)
   
   # use geomean sr if sr = NULL (only growth overfishing)
   if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method="BFGS")
   
   # reference selex
-  Fsq = fabs(stock,nyears=nyears)
+  if(!fbar) Fsq = fabs(stock,nyears=nyears)
+  if(fbar) Fsq = mean(tail(fbar(stock),nyears))
   if(is.null(Fref)){ Fref=an(Fsq)} else {
     refs = refpts(brp(FLBRP(stock,sr)))
     if(Fref=="F0") Fref = refs["virgin","harvest"]+0.001
@@ -538,14 +540,14 @@ selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975){
   # Current selectivity
   stkobs = stkf
   harvest(stkobs)[,ac(yrs)][] = Sobs
-  stkobs = fbar2f(stkobs,plim=plim)
+  if(!fbar)stkobs = fbar2f(stkobs,plim=plim)
   stkobs = fwd(stkobs, control = ctrl_f, sr = sr)
   
   
   out = FLStocks(lapply(object,function(x){
     stk = stkf
     harvest(stk)[,ac(yrs)][] = x
-    stk = fbar2f(stk,plim=plim)
+    if(!fbar) stk =  fbar2f(stk,plim=plim)
     stk = fwd(stk, control = ctrl_f, sr = sr)
     stk = window(stk,start=dy)
   })) 
