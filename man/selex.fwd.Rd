@@ -11,7 +11,8 @@ selex.fwd(
   fyears = 50,
   Fref = NULL,
   nyears = 3,
-  plim = 0.975
+  plim = 0.975,
+  fbar = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ selex.fwd(
 \item{nyears}{number of years for reference conditions}
 
 \item{plim}{set fbar for ages with Selectivy >= plim (default 0.975)}
+
+\item{fbar}{option to not correct for Fbar}
 }
 \value{
 FLStocks object
