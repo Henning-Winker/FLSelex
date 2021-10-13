@@ -270,13 +270,18 @@ Fselex = function(brps,what =c("Fref","Fmsy","F0.1")){
 #'   \item 2  F over SRP or SSB (requires ssr)
 #'   \item 3  Isopleth Yield
 #'   \item 4  Isopleth SPR or SSB (requires ssr)
-#' }   
+#' }    
 #' @param ncol number of columns
 #' @param colours optional, e.g. terrain.col, rainbow, etc.
 #' @param Ftrg  option to dynamic Ftrg=c("none","fmsy","f0.1")
+#' \itemize{
+#'   \item "none"  
+#'   \item "msy"  
+#'   \item "f0.1"
+#' }
 #' @return ggplot   
 #' @export
-ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","fmsy","f0.1")){
+ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","msy","f0.1")){
 # Colour function
 if(is.null(colours)){colf = r4col} else {colf = colours}
 if(is.null(panels)) panels=1:4
@@ -321,10 +326,10 @@ isodat$So = c(obs$ssb,rep(NA,nrow(isodat)-nrow(obs)))/max(isodat$ssb)
 
 if(Ftrg[1]!="none"){
 ftrg = do.call(rbind,Map(function(x,y){
-if(Ftrg=="f0.1") frp= c(refpts(x)["f0.1","harvest"])
-if(Ftrg=="fmsy") frp= c(refpts(x)["msy","harvest"])
+frp= c(refpts(x)[Ftrg,"harvest"])
 data.frame(s50=y,ftrg=frp)
 },brps[-1],S50))
+ftrg = ftrg[ftrg$ftrg<lim,]
 }
   # F vs Yield
   P1 = ggplot(data=isodat,aes(x=harvest,y=yield/max(yield),group=S50))+
