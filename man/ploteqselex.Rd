@@ -11,7 +11,7 @@ ploteqselex(
   panels = NULL,
   ncol = NULL,
   colours = NULL,
-  Ftrg = c("none", "fmsy", "f0.1")
+  Ftrg = c("none", "msy", "f0.1")
 )
 }
 \arguments{
@@ -31,7 +31,12 @@ ploteqselex(
 
 \item{colours}{optional, e.g. terrain.col, rainbow, etc.}
 
-\item{Ftrg}{option to dynamic Ftrg=c("none","fmsy","f0.1")}
+\item{Ftrg}{option to dynamic Ftrg=c("none","fmsy","f0.1")
+\itemize{
+  \item "none"  
+  \item "msy"  
+  \item "f0.1"
+}}
 }
 \value{
 ggplot
