@@ -472,7 +472,7 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
           F = fbar(x),
           Biomass = stock(x),
           Frec.F = harvest(x)[1,]/apply(harvest(x),2,max),
-          Prop.Aopt  = apply(0.001+catch.n(x)[ac(aopt(x)):range(x)[["max"]],],2,sum)/apply(0.001+catch.n(x),2,sum)*100
+          Prop.Aopt  = apply(0.001+catch.n(x)[ac(aopt(x):range(x)[["max"]]),],2,sum)/apply(0.001+catch.n(x),2,sum)*100
           
           )[panels])
   data.frame(sel=x@name,df)
