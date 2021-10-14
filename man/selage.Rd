@@ -7,7 +7,7 @@
 selage(stock, nyears = 3, year = NULL, maturity = FALSE)
 }
 \arguments{
-\item{stock}{Input FLStock object.}
+\item{stock}{Input FLStock object or FLQuant.}
 
 \item{nyears}{numbers of last years to compute selectivity}
 

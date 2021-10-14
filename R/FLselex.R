@@ -3,22 +3,25 @@
 #
 #' coverts harvest() and catch.sel() selectivity at age Sa  
 #'
-#' @param stock Input FLStock object.
+#' @param stock Input FLStock object or FLQuant.
 #' @param nyears numbers of last years to compute selectivity
 #' @param year option to specify year range, overwrites nyears
 #' @param maturity if TRUE selage() extract mat_at_age
 #' @return FLQuant of Selectivity-at-age Sa  
 #' @export
 selage <- function (stock, nyears=3,year=NULL,maturity=FALSE){
-if(is.null(year)){yr= (range(stock)["maxyear"]-nyears+1):range(stock)["maxyear"]} else {
+
+nyears = min(dims(stock)$maxyear-dims(stock)$minyear+1,nyears)  
+  
+if(is.null(year)){yr= (dims(stock)$"maxyear"-nyears+1):dims(stock)$"maxyear"} else {
 yr = year  
 }
-if(!maturity){
-Sa = apply(harvest(stock[,ac(yr)]),1,mean,na.rm=T)/max(apply(harvest(stock[,ac(yr)]),1,mean,na.rm=T),na.rm=T)
-} else {
-Sa = apply(mat(stock[,ac(yr)]),1,mean,na.rm=T)/max(apply(mat(stock[,ac(yr)]),1,mean,na.rm=T),na.rm=T)
-  
-}
+if(class(stock)=="FLStock"){
+  if(!maturity){flq = harvest(stock)[,ac(yr)]} else {flq =mat(stock)[,ac(yr)]}
+} else { flq = stock[,ac(yr)]}
+
+Sa = apply(flq,1,mean,na.rm=T)/max(apply(flq,1,mean,na.rm=T),na.rm=T)
+
 Sa@units = "NA"
 return(Sa)
 }
