@@ -487,8 +487,8 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
   
   d. = dat[dat$sel!="obs",]
   obs = dat[dat$sel=="obs",]
- 
   d.$obs = c(obs$data,rep(NA,nrow(d.)-nrow(obs)))
+  d.$qname = factor(d.$qname,levels=unique(d.$qname))
   
   if(!discrete){
     d.$S50 = an(d.$sel)
@@ -500,9 +500,9 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
     d.$S50 = (d.$sel)
     p=ggplot(d.,aes(x=year,y=data,group=sel))+geom_line(aes(colour=sel), na.rm=TRUE)+
       geom_line(aes(x=year,y=obs),linetype="dashed",size=0.7, na.rm=TRUE)+
-      facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")
-     
-  }
+      facet_wrap(~qname, scales="free",ncol=ncol)+ylab("Quantity")+xlab("Year")+
+      scale_color_discrete(limits = unique(d.$sel))
+    }
   
   return(p)
   } #}}}
