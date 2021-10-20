@@ -56,8 +56,8 @@ if(flq){
       geom_line(aes(x=age,y=data,colour=qname))+geom_hline(yintercept = 0.5,linetype="dotted")+
     scale_colour_discrete(legend.title)+
     ylab("Selectivity")+xlab("Age")+
-      scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))
+      #scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
+      scale_x_continuous(expand = c(0, 0),breaks = 1:100) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
     
  } else {
 
@@ -103,8 +103,8 @@ if(flq){
   if(obs & length(pred)>1) p = p+geom_line(data=as.data.frame(Sa),aes(x=age,y=data),linetype="dashed")
   
   p = p +ylab("Selectivity")+xlab("Age")+
-    scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
-    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))
+    #scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
+    scale_x_continuous(expand = c(0, 0),breaks = 1:10)+ scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
     
   }
   
@@ -124,7 +124,7 @@ if(flq){
     geom_line(aes(color=S50))+
     scale_color_gradientn(colours=rev(colf(20)))+
     ylab("Selectivity")+xlab("Age")+
-    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))+
+    scale_x_continuous(expand = c(0, 0),breaks=1:100) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03))+
     
       theme(legend.key.size = unit(1, 'cm'), #change legend key size
             legend.key.height = unit(1, 'cm'),
@@ -455,7 +455,8 @@ plotprjselex = function(object,panels=NULL, ncol=NULL,colours=NULL,nyears=NULL,m
   if(is.null(ncol)){
     if(length(panels)%in%c(1,3)){ncol=1} else {ncol=2}
   }
-  object = window(object,start=dims(object[[2]])[["minyear"]]-nyears)
+  object = window(object,start=min(do.call(c,lapply(object,function(x){dims(object[[1]])[["minyear"]]}))),
+           end=max(do.call(c,lapply(object,function(x){dims(object[[1]])[["maxyear"]]}))))
   nc = length(object)+3
   #Prep data
   
