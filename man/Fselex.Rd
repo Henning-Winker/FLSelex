@@ -4,12 +4,14 @@
 \alias{Fselex}
 \title{Fselex}
 \usage{
-Fselex(brps, what = c("Fref", "Fmsy", "F0.1"))
+Fselex(brps, what = c("Fref", "Fmsy", "F0.1"), vbgf = NULL)
 }
 \arguments{
 \item{brps}{output from brp.selex()}
 
 \item{what}{type of F c("Fref","Fmsy","F0.1"), ref is by default Fcur}
+
+\item{vbgf}{converts into length if von Bertalanffy FLPar is provided}
 }
 \value{
 data.frame(F,rel.yield,rel.ssb)

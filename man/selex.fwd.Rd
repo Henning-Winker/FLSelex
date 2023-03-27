@@ -12,7 +12,8 @@ selex.fwd(
   Fref = NULL,
   nyears = 3,
   plim = 0.975,
-  fbar = FALSE
+  fbar = FALSE,
+  vbgf = NULL
 )
 }
 \arguments{

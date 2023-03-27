@@ -91,6 +91,7 @@ if(flq){
     compounds=FALSE
   }
   # Plot
+    
   p = ggplot(as.data.frame(seldat))+
     geom_line(aes(x=age,y=data,colour=qname))+geom_hline(yintercept = 0.5,linetype="dotted")
   
@@ -102,9 +103,11 @@ if(flq){
   if(obs & length(pred)==1) p = p+geom_point(data=as.data.frame(Sa),aes(x=age,y=data), fill="white",shape=21,size=2)
   if(obs & length(pred)>1) p = p+geom_line(data=as.data.frame(Sa),aes(x=age,y=data),linetype="dashed")
   
+  
+  
   p = p +ylab("Selectivity")+xlab("Age")+
     #scale_x_continuous(breaks = 1:100)+scale_y_continuous(breaks = seq(0, 1, by = 0.25))+
-    scale_x_continuous(expand = c(0, 0),breaks = 1:10)+ scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
+    scale_x_continuous(expand = c(0, 0),breaks = 1:100)+ scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
     
   }
   
@@ -120,6 +123,7 @@ if(flq){
     dat$ao = c(Sobs$age,rep(NA,nrow(dat)-nrow(Sobs)))
     dat$so = c(Sobs$data,rep(NA,nrow(dat)-nrow(Sobs)))
     }
+   
     p = ggplot(data=dat,aes(x=age,y=data,group=S50))+    
     geom_line(aes(color=S50))+
     scale_color_gradientn(colours=rev(colf(20)))+
@@ -173,15 +177,28 @@ plotselage<- function(stock,nyears=5,year=NULL){
 #'
 #' @param brps output from brp.selex() 
 #' @param what type of F c("Fref","Fmsy","F0.1"), ref is by default Fcur
+#' @param vbgf converts into length if von Bertalanffy FLPar is provided
 #' @return ggplot   
 #' @export
 
-plotFselex = function(brps,what =c("Fref","Fmsy","F0.1")){
+plotFselex = function(brps,what =c("Fref","Fmsy","F0.1"),vbgf=NULL){
   # check if per-recruit
   pr = ifelse(length(params(brps[[1]]))>1,FALSE,TRUE) 
   Obs = ifelse(names(brps)[1]=="obs",TRUE,FALSE)
   what = what[1]
   ref = c("Fref","msy","f0.1")[which(c("Fref","Fmsy","F0.1")%in%what)]  
+  
+  
+  xlab = "Age-at-50%-Selectivity"
+  
+  
+  if(!is.null(vbgf)){
+  # rename
+  names(brps) =  c(names(brps)[1],ac(round(vonbert(c(vbgf[1]),c(vbgf[2]),c(vbgf[3]),an(names(brps[-1]))),1)))
+  xlab = "Length-at-50%-Selectivity"
+  
+  }
+   
   
   dat = do.call(rbind,lapply(brps,function(x){
     rps = refpts(x)   
@@ -205,8 +222,8 @@ plotFselex = function(brps,what =c("Fref","Fmsy","F0.1")){
     p <- p + scale_y_continuous(sec.axis = sec_axis(~.*scale , name = expression(SPR/SPR[0])))
   }
   p <- p + scale_colour_manual(values = c("red", "blue"))
-  if(!pr) p <- p + labs(y = "Relative Yield",x = "Age-at-50%-Selectivity",colour = "")
-  if(pr) p <- p + labs(y = "Relative YPR",x = "Age-at-50%-Selectivity",colour = "")
+  if(!pr) p <- p + labs(y = "Relative Yield",x = xlab,colour = "")
+  if(pr) p <- p + labs(y = "Relative YPR",x = xlab,colour = "")
   p <- p + theme(legend.position = "bottom")
   Aopt = dat[dat$Catch==max(dat$Catch),]
   p = p+geom_segment(x=an(Aopt$sel),xend=an(Aopt$sel),y=0,yend=Aopt$BB0/scale,col="red",linetype="dotted")
@@ -220,9 +237,11 @@ plotFselex = function(brps,what =c("Fref","Fmsy","F0.1")){
   #p = p+annotate("text",x=mean(an(dat$sel)),y=1,label=paste0(what,"=",round(dat$F[1],3)))
   if(Obs){
     S50 = s50(brps[[1]]@landings.sel/max(brps[[1]]@landings.sel))
-    p = p+geom_segment(x =S50,xend=S50,y=0,yend=0.95 ,linetype="dashed")
+    if(!is.null(vbgf)) S50 = an(vonbert(vbgf[1],vbgf[2],vbgf[3],S50))
+    ymax=(dat$Catch/max(dat$Catch))[which(abs(S50-an(dat$sel))==min(abs(S50-an(dat$sel))))]
+    p = p+geom_segment(x =S50,xend=S50,y=0,yend=ymax ,linetype="dashed")
     if(pr & what =="Fmsy") what="Fmax" 
-    p = p+annotate("text",x=S50+0.03,y=0.97,label=paste0(what," = ",round(dat$F[1],3)),size=3)
+    p = p+annotate("text",x=S50+0.03,y=ymax*1.05,label=paste0(what," = ",round(dat$F[1],3)),size=3)
   }
   return(p)
 }
@@ -234,12 +253,18 @@ plotFselex = function(brps,what =c("Fref","Fmsy","F0.1")){
 #'
 #' @param brps output from brp.selex() 
 #' @param what type of F c("Fref","Fmsy","F0.1"), ref is by default Fcur
+#' @param vbgf converts into length if von Bertalanffy FLPar is provided
 #' @return data.frame(F,rel.yield,rel.ssb)   
 #' @export
-Fselex = function(brps,what =c("Fref","Fmsy","F0.1")){
+Fselex = function(brps,what =c("Fref","Fmsy","F0.1"),vbgf=NULL){
   Obs = ifelse(names(brps)[1]=="obs",TRUE,FALSE)
   what = what[1]
   ref = c("Fref","msy","f0.1")[which(c("Fref","Fmsy","F0.1")%in%what)]  
+  if(!is.null(vbgf)){
+    # rename
+    names(brps) =  c(names(brps)[1],ac(round(vonbert(c(vbgf[1]),c(vbgf[2]),c(vbgf[3]),an(names(brps[-1]))),1)))
+  }
+  
   dat = do.call(rbind,lapply(brps,function(x){
     rps = refpts(x)   
     data.frame(F=an(rps[ref,"harvest"]), rel.yield = an(rps[ref,"yield"]),rel.ssb = an(rps[ref,"ssb"]/rps["virgin","ssb"])) 
@@ -277,11 +302,13 @@ Fselex = function(brps,what =c("Fref","Fmsy","F0.1")){
 #' \itemize{
 #'   \item "none"  
 #'   \item "msy"  
-#'   \item "f0.1"
+#'   \item "f0=.1"
 #' }
+#' @param vbgf LPar(linf,k,t0) if provided converts to mean length
 #' @return ggplot   
 #' @export
-ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","msy","f0.1")){
+
+ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","msy","f0.1"),vbgf="missing"){
 # Colour function
 if(is.null(colours)){colf = r4col} else {colf = colours}
 if(is.null(panels)) panels=1:4
@@ -331,6 +358,16 @@ data.frame(s50=y,ftrg=frp)
 },brps[-1],S50))
 ftrg = ftrg[ftrg$ftrg<lim,]
 }
+
+ylab = "Age-at-50%-Selectivity"
+
+if(!missing(vbgf)){
+  isodat$S50 = round(vonbert(vbgf[[1]],vbgf[[2]],vbgf[[3]],age=isodat$S50),1)
+  S50obs = round(vonbert(vbgf[[1]],vbgf[[2]],vbgf[[3]],age=  S50obs),1)
+  ylab = "Length-at-50%-Selectivity"
+
+}
+
   # F vs Yield
   P1 = ggplot(data=isodat,aes(x=harvest,y=yield/max(yield),group=S50))+
   geom_line(aes(color=S50))+geom_line(aes(x=Fo,y=Yo),size=0.7,linetype="dashed", na.rm=TRUE)+
@@ -370,7 +407,7 @@ ftrg = ftrg[ftrg$ftrg<lim,]
   nbr = length(colbr)
   P3=ggplot(isodat, aes(x=harvest,y=S50))+
   geom_raster(aes(fill = yield/max(yield)), 
-              interpolate = T, hjust = 0.5, vjust = 0.5)+ 
+              interpolate = F, hjust = 0.5, vjust = 0.5)+ 
   metR::geom_contour2(aes(z=yield/max(yield)),color = grey(0.4,1),breaks =conbr )+ 
   metR::geom_text_contour(aes(z=yield/max(yield)),stroke = 0.2,size=3,skip=0,breaks = conbr)+
   scale_fill_gradientn(colours=rev(colf(nbr+3))[-c(10:11,13)],limits=c(-0.03,1), breaks=colbr, name=paste(quants[1]))+
@@ -383,9 +420,11 @@ ftrg = ftrg[ftrg$ftrg<lim,]
           legend.text = element_text(size=7),
           axis.title=element_text(size=10),
           legend.title=element_text(size=9)
-    )+
+    )
+  
+  +
   scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(-0.03, 0))+
-  ylab("Age-at-50%-Selectivity")+xlab("Fishing Mortality")
+  ylab(ylab)+xlab("Fishing Mortality")
 
   # Isopleth SSB
   colbr = c(0.05,seq(0,1,0.1))
@@ -408,7 +447,7 @@ ftrg = ftrg[ftrg$ftrg<lim,]
   geom_segment(aes(x = Fobs, xend = Fobs, y = min(S50), yend = S50obs), colour = "black",size=0.3,linetype="dotted")+
   geom_segment(aes(x = 0, xend = Fobs, y = S50obs, yend = S50obs), colour = "black",size=0.3,linetype="dotted")+
   scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(-0.03, 0))+
-  ylab("Age-at-50%-Selectivity")+xlab("Fishing Mortality")
+  ylab(ylab)+xlab("Fishing Mortality")
   if(Ftrg[1]!="none"){
     P3 = P3+geom_point(data=ftrg,aes(x=ftrg,y=s50),shape = 21, colour = "black",size=1.1, fill = "white")
     P4= P4+geom_point(data=ftrg,aes(x=ftrg,y=s50),shape = 21, colour = "black",size=1.1, fill = "white")
@@ -533,3 +572,40 @@ mleg = function(size=0.5,height=0.5,width=0.5,title=6,text=6){
 }  
 #}}}
 
+
+#{{{
+#' plotaopt()
+#'
+#' Function to compute Aopt, the age where an unfished cohort attains maximum biomass  
+#' @param stock class FLStock
+#' @return FLQuant with annual spr0y  
+#' @export
+#' @author Henning Winker
+aopt<-function(stock,nyears=3,vbgf=NULL){
+  object=stock
+  age = dims(object)[["min"]]:dims(object)[["max"]]
+  survivors=exp(-apply(m(object),2,cumsum))
+  survivors[-1]=survivors[-dim(survivors)[1]]
+  survivors[1]=1
+  expZ=exp(-m(object[dim(m(object))[1]]))
+  if (!is.na(range(object)["plusgroup"]))
+    survivors[dim(m(object))[1]]=survivors[dim(m(object))[1]]*(-1.0/(expZ-1.0))
+  ba = yearMeans(tail((stock.wt(object)*survivors)[-dims(object)[["max"]],],nyears))
+  aopt = age[which(ba==max(ba))[1]]
+  # Condition that at aopt fish had spawned 1 or more times on average
+  aopt =  max(aopt,(which(yearMeans(tail(object@mat,nyears))>0.5)+1)[1])
+  # ensure that aopt <= maxage
+  aopt = min(aopt,dims(object)[["max"]]-1)
+  df = as.data.frame(ba)
+  df$data = df$data/max(df$data)
+  if(!is.null(vbgf)){
+   df$age= vonbert(c(vbgf[1]),c(vbgf[2]),c(vbgf[3]), age=df$age)
+  
+   }
+  p = ggplot(df,aes(age,data))+geom_line()+
+  scale_x_continuous(expand = c(0, 0),breaks = seq(0,100,2)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
+  p =  p = p+geom_segment(x =aopt,xend=aopt,y=0,yend=1 ,linetype="dashed")
+  
+  
+  return(aopt)
+}

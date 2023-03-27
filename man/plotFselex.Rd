@@ -4,12 +4,14 @@
 \alias{plotFselex}
 \title{plots trade-offs between relative Catch and SSB as a function Selectivity}
 \usage{
-plotFselex(brps, what = c("Fref", "Fmsy", "F0.1"))
+plotFselex(brps, what = c("Fref", "Fmsy", "F0.1"), vbgf = NULL)
 }
 \arguments{
 \item{brps}{output from brp.selex()}
 
 \item{what}{type of F c("Fref","Fmsy","F0.1"), ref is by default Fcur}
+
+\item{vbgf}{converts into length if von Bertalanffy FLPar is provided}
 }
 \value{
 ggplot

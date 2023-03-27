@@ -11,7 +11,8 @@ ploteqselex(
   panels = NULL,
   ncol = NULL,
   colours = NULL,
-  Ftrg = c("none", "msy", "f0.1")
+  Ftrg = c("none", "msy", "f0.1"),
+  vbgf = "missing"
 )
 }
 \arguments{
@@ -35,8 +36,10 @@ ploteqselex(
 \itemize{
   \item "none"  
   \item "msy"  
-  \item "f0.1"
+  \item "f0=.1"
 }}
+
+\item{vbgf}{LPar(linf,k,t0) if provided converts to mean length}
 }
 \value{
 ggplot

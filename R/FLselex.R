@@ -525,13 +525,18 @@ return(out)
 #' @param fbar option to not correct for Fbar
 #' @return FLStocks object
 #' @export
-selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975,fbar=FALSE){
+selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975,fbar=FALSE,vbgf=NULL){
   # merge discards to avoid issues in projections
   object = sel
+  
+  
   if(class(object)=="FLPars") object = par2sa(object,stock)
   # set Fbar range 
   #stock=fbar2f(stock)
   if(!fbar) stock=fbar2f(stock,nyears=nyears,plim=plim)
+  if(!is.null(vbgf)){
+    names(object)   = ac(round(vonbert(c(vbgf[1]),c(vbgf[2]),c(vbgf[3]),an(names(object))),1))
+  }
   
   # use geomean sr if sr = NULL (only growth overfishing)
   if(is.null(sr)) sr = fmle(as.FLSR(stock,model=geomean),method="BFGS")
@@ -569,7 +574,7 @@ selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975,f
     stk = stkf
     harvest(stk)[,ac(yrs)][] = x
     if(!fbar) stk =  fbar2f(stk,plim=plim)
-    stk = fwd(stk, control = ctrl_f, sr = sr)
+    stk = ffwd(stk, control = ctrl_f, sr = sr)
     stk = window(stk,start=dy)
   })) 
  
@@ -586,3 +591,29 @@ selex.fwd = function(sel,stock,sr=NULL,fyears=50,Fref=NULL,nyears=3,plim=0.975,f
 }
 
 
+# Extract yield and SSB
+#{{{
+# yopt.fwd() 
+#
+#' function Extract yield and SSB 
+#' @param object FLStocks output from selex.fwd()  
+#' @param rel if TRUE relative quantaties are shown  
+#' @param decimales 
+#' @return Table with quatities
+#' @export
+yopt.fwd = function(object,rel=FALSE,decimals=3){ 
+  
+  out = do.call(rbind,lapply(object[-1], function(x){
+  
+    data.frame(Selectivity=an(name(x)),Yield=an(tail(catch(x))),SSB=an(tail(ssb(x))))
+  }))
+  if(rel){
+    out$Yield = out$Yield/max(out$Yield,na.rm=T)
+    out$SSB = out$SSB/max(out$SSB,na.rm=T)
+  }
+  rownames(out) = 1:nrow(out)
+  out[,-1] = round(out[,-1],decimals)
+  return(out)
+}
+
+ 
