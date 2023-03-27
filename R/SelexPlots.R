@@ -308,7 +308,7 @@ Fselex = function(brps,what =c("Fref","Fmsy","F0.1"),vbgf=NULL){
 #' @return ggplot   
 #' @export
 
-ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","msy","f0.1"),vbgf="missing"){
+ploteqselex = function(brps,Fmax=2.,panels=NULL, ncol=NULL,colours=NULL,Ftrg=c("none","msy","f0.1")){
 # Colour function
 if(is.null(colours)){colf = r4col} else {colf = colours}
 if(is.null(panels)) panels=1:4
@@ -361,12 +361,7 @@ ftrg = ftrg[ftrg$ftrg<lim,]
 
 ylab = "Age-at-50%-Selectivity"
 
-if(!missing(vbgf)){
-  isodat$S50 = round(vonbert(vbgf[[1]],vbgf[[2]],vbgf[[3]],age=isodat$S50),1)
-  S50obs = round(vonbert(vbgf[[1]],vbgf[[2]],vbgf[[3]],age=  S50obs),1)
-  ylab = "Length-at-50%-Selectivity"
 
-}
 
   # F vs Yield
   P1 = ggplot(data=isodat,aes(x=harvest,y=yield/max(yield),group=S50))+
@@ -420,9 +415,7 @@ if(!missing(vbgf)){
           legend.text = element_text(size=7),
           axis.title=element_text(size=10),
           legend.title=element_text(size=9)
-    )
-  
-  +
+    )+
   scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(-0.03, 0))+
   ylab(ylab)+xlab("Fishing Mortality")
 
@@ -578,10 +571,11 @@ mleg = function(size=0.5,height=0.5,width=0.5,title=6,text=6){
 #'
 #' Function to compute Aopt, the age where an unfished cohort attains maximum biomass  
 #' @param stock class FLStock
-#' @return FLQuant with annual spr0y  
+#' @param nyears number of years for biology
+#' @return ggplot   
 #' @export
 #' @author Henning Winker
-aopt<-function(stock,nyears=3,vbgf=NULL){
+plotaopt<-function(stock,nyears=3){
   object=stock
   age = dims(object)[["min"]]:dims(object)[["max"]]
   survivors=exp(-apply(m(object),2,cumsum))
@@ -598,14 +592,12 @@ aopt<-function(stock,nyears=3,vbgf=NULL){
   aopt = min(aopt,dims(object)[["max"]]-1)
   df = as.data.frame(ba)
   df$data = df$data/max(df$data)
-  if(!is.null(vbgf)){
-   df$age= vonbert(c(vbgf[1]),c(vbgf[2]),c(vbgf[3]), age=df$age)
   
-   }
   p = ggplot(df,aes(age,data))+geom_line()+
-  scale_x_continuous(expand = c(0, 0),breaks = seq(0,100,2)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
-  p =  p = p+geom_segment(x =aopt,xend=aopt,y=0,yend=1 ,linetype="dashed")
+  scale_x_continuous(expand = c(0, 0),breaks = seq(0,100,1)) + scale_y_continuous(expand = c(0, 0),limits=c(0,1.03),breaks = seq(0, 1, by = 0.25))
+  p =  p+geom_segment(x =aopt,xend=aopt,y=0,yend=1 ,linetype="dashed")+
+    ylab("Relative Biomass")+xlab("Age")
   
   
-  return(aopt)
+  return(p)
 }

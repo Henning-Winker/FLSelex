@@ -11,8 +11,7 @@ ploteqselex(
   panels = NULL,
   ncol = NULL,
   colours = NULL,
-  Ftrg = c("none", "msy", "f0.1"),
-  vbgf = "missing"
+  Ftrg = c("none", "msy", "f0.1")
 )
 }
 \arguments{
